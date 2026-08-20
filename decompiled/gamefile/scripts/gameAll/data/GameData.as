@@ -578,7 +578,10 @@
             // modifier must not change its saved level.
             if(skill0.name != "jump")
             {
+               if(skill0.name != "jump")
+            {
                this.playerData.setSkillLevel(skill0.name,skill0.maxLevel);
+            }
             }
          }
       }

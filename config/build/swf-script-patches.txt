@@ -45,6 +45,10 @@ data\Copyright.as
 bodyGroup\BodyGroup.as
 body\lieutenant\LieutenantBody.as
 body\lieutenant\Lieutenant_AI.as
+body\lieutenant\LieutenantKey.as
+body\enemy\EnemyHero_AI.as
+body\enemy\EnemyHeroKey.as
+body\enemy\EnemyHeroCtrl.as
 net\SWFLoader.as
 net\SWFLoaderManager.as
 scene\OneSence.as
@@ -63,6 +67,7 @@ UI\gaming\SkillIconBox.as
 UI\gaming\GamingUI.as
 UI\dialog\Dialogbox.as
 UI\dialog\Dialogbox2.as
+gameAll\level\Level_0.as
 body\skill\SkillGroup.as
 UI\exchange\DouwaUI.as
 gameAll\data\GoodsItemsData.as
@@ -78,6 +83,11 @@ UI\research\ArmsResearchUI.as
 UI\research\ChipCubeUI.as
 body\key\KeysGroup.as
 body\hero\HeroCarKey.as
+body\hero\Hero_AI.as
+body\hero\HeroArena_AI.as
+body\hero\HeroLevel_AI.as
+body\motion\BodyMotion.as
+body\motion\GroundMotion.as
 UI\gaming\GamingUI.as
 UI\gaming\GamingPauseUI.as
 gameAll\data\LivenessData.as
@@ -119,3 +129,10 @@ gameAll\vip\VipData.as
 UI\vip\VipUI.as
 UI\honor\HonorUI.as
 gameAll\honor\HonorData.as
+body\skill\SkillDefine.as
+UI\research\PlayerTrainUI.as
+gameAll\data\PlayerData.as
+gameAll\data\GameData.as
+UI\gaming\SkillIcon.as
+UI\top\HighPlayerBox.as
+body\skill\AirGravitySkill.as

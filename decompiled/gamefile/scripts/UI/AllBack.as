@@ -1945,7 +1945,8 @@ package UI
          oldCode = Game.keysGroup.getBinding(action);
          for(i = 0; i < this.keyActions.length; i++)
          {
-            if(i != this.capturingKey && Game.keysGroup.getBinding(this.keyActions[i]) == code)
+            var sameJumpPair:Boolean = (action == "jump" && this.keyActions[i] == "jumpSkill") || (action == "jumpSkill" && this.keyActions[i] == "jump");
+            if(i != this.capturingKey && !sameJumpPair && Game.keysGroup.getBinding(this.keyActions[i]) == code)
             {
                Game.keysGroup.setBinding(this.keyActions[i],oldCode);
             }

@@ -43,7 +43,14 @@ package UI.gaming
          {
             i0 = this.arr[n];
             s0 = arr1[n];
-            i0.inData(s0);
+            if(s0 != null && s0.define != null && s0.define.name == "jump" && Game.BG.hero != null)
+            {
+               i0.inAirGravityData(Game.BG.hero.getAirGravityCharges(),Game.BG.hero.getAirGravityMaxCharges(),Game.BG.hero.getAirGravityRecoveryPer());
+            }
+            else
+            {
+               i0.inData(s0);
+            }
          }
       }
    }

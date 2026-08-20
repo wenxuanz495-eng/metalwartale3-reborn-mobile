@@ -32,11 +32,14 @@ if defined COPY_FAILED goto copy_failed
 if not "!RESOURCE_COUNT!"=="176" goto count_failed
 
 if not exist "%REPO_ROOT%\config\build\resource-overrides\car1130.swf" goto missing_input
+if not exist "%REPO_ROOT%\swf\sub25.swf" goto missing_input
 if not exist "%REPO_ROOT%\config\build\resource-overrides\battle_boom.mp3" goto missing_input
 if not exist "%REPO_ROOT%\config\build\resource-overrides\death_electric.mp3" goto missing_input
 if not exist "%REPO_ROOT%\config\build\resource-overrides\death_delay_electric.mp3" goto missing_input
 if not exist "%REPO_ROOT%\config\build\resource-overrides\environment_break.mp3" goto missing_input
 copy /y "%REPO_ROOT%\config\build\resource-overrides\car1130.swf" "%BUILD_DIR%\swf\car1130.swf" >nul
+if errorlevel 1 goto copy_failed
+copy /y "%REPO_ROOT%\swf\sub25.swf" "%BUILD_DIR%\swf\sub25.swf" >nul
 if errorlevel 1 goto copy_failed
 for %%F in ("%REPO_ROOT%\config\build\resource-overrides\*.mp3") do copy /y "%%~fF" "%BUILD_DIR%\swf\%%~nxF" >nul
 
