@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($AirSdk)) {
-    throw 'AIR_SDK is not set. Example: $env:AIR_SDK="D:\\superalloy\\air-mobile-tools\\airsdk-50.2.4.1"'
+    throw 'AIR_SDK is not set. Example: $env:AIR_SDK="D:\\superalloy\\工具\\air-mobile-tools\\airsdk-50.2.4.1"'
 }
 $adt = Join-Path $AirSdk 'bin\adt.bat'
 if (!(Test-Path $adt)) { throw "adt not found: $adt" }

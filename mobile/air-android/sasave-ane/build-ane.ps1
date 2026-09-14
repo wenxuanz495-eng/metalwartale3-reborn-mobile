@@ -5,11 +5,11 @@ if ([string]::IsNullOrWhiteSpace($AirSdk)) { throw 'AIR_SDK is not set.' }
 $root = $PSScriptRoot
 $build = Join-Path $root 'build'
 $classes = Join-Path $build 'classes'
-$android = 'D:\superalloy\air-mobile-tools\android-4.1.1.4.jar'
+$android = 'D:\superalloy\工具\air-mobile-tools\android-4.1.1.4.jar'
 $fre = Join-Path $AirSdk 'lib\android\FlashRuntimeExtensions.jar'
-$json = 'D:\superalloy\air-mobile-tools\json-20231013.jar'
+$json = 'D:\superalloy\工具\air-mobile-tools\json-20231013.jar'
 $airglobal = Join-Path $AirSdk 'frameworks\libs\air\airglobal.swc'
-$jdk8 = 'D:\superalloy\air-mobile-tools\jdk8\jdk8u502-b07\bin'
+$jdk8 = 'D:\superalloy\工具\air-mobile-tools\jdk8\jdk8u502-b07\bin'
 $swc = Join-Path $build 'sasave.swc'
 $ane = Join-Path $root 'sasave.ane'
 

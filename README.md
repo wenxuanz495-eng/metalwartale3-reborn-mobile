@@ -29,7 +29,7 @@
 |---|---|
 | 全量构建 game.swf | [`构建.bat`](构建.bat)（= `scripts\build_all.bat`，清单驱动补丁构建，产物 `build\game.swf`） |
 | 本地试玩 | `启动游戏-flashplayer_sa.bat` / `_debug.bat` |
-| 打 APK | `$env:AIR_SDK="D:\superalloy\air-mobile-tools\airsdk-50.2.4.1"` 后运行 `mobile\air-android\build-apk.ps1`（支持 `-Arch armv7/armv8/x86/x64`、`-Release`；captive runtime） |
+| 打 APK | `$env:AIR_SDK="D:\superalloy\工具\air-mobile-tools\airsdk-50.2.4.1"` 后运行 `mobile\air-android\build-apk.ps1`（支持 `-Arch armv7/armv8/x86/x64`、`-Release`；captive runtime） |
 | 重编 ANE | `mobile\air-android\sasave-ane\build-ane.ps1` |
 
 APK 产物输出到工作区根 `MOBILE-APK-READY\`；签名证书 `test-release.p12`（首跑自动生成，密码 `superalloy-test`，勿入库）。
