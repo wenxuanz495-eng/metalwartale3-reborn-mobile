@@ -53,6 +53,14 @@ package gameAll
       
       public function decMCoin(value0:Number, _yesFun:Function = null, _noFun:Function = null) : *
       {
+         if(Game.gameData != null && Game.gameData.modFreeTasksAndPurchases)
+         {
+            if(_yesFun is Function)
+            {
+               _yesFun();
+            }
+            return;
+         }
          if(Game.save_api.isLocal())
          {
             if(Game.gameData.MCoin >= value0)

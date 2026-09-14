@@ -5,6 +5,7 @@ package UI._new.change
    import UI._new.icon.NormalAllIcon;
    import UI.page.PageBox;
    import flash.display.Sprite;
+   import flash.ui.Multitouch;
    import flash.utils.getTimer;
    import gameAll.data.ArmsItemsData;
    import gameAll.data.CarItemsData;
@@ -21,7 +22,9 @@ package UI._new.change
       public var carBox:ChangeIconBox;
       
       public var dragCtrl:_DragController;
-      
+
+      private var mobilePressStartedAt:int = 0;
+
       public function _ChangeUI()
       {
          var n:* = undefined;
@@ -93,12 +96,16 @@ package UI._new.change
       private function addEvent(box0:ChangeIconBox) : *
       {
          this.addOutEvent(box0);
+         if(!Multitouch.supportsTouchEvents)
+         {
+            box0.addEventListener(ClickEvent.ON_CLICK,Game.uiGroup.itemsIconClick);
+         }
          box0.addEventListener(ClickEvent.ON_DOWN,this.iconDown);
          box0.addEventListener(ClickEvent.ON_UP,this.iconUp);
          box0.addEventListener(ClickEvent.ON_OVER,this.iconOver);
          box0.addEventListener(ClickEvent.ON_OUT,this.iconOut);
       }
-      
+
       private function iconDown(e:ClickEvent) : *
       {
          if(getTimer() - PageBox.lastUISwitchAt < 220)
@@ -106,6 +113,7 @@ package UI._new.change
             return;
          }
          var icon0:NormalAllIcon = e.goal;
+         this.mobilePressStartedAt = getTimer();
          if(icon0.state == "fill")
          {
             this.dragCtrl.startDraging(e.goal,e.target);
@@ -119,6 +127,8 @@ package UI._new.change
          var arms_d1:ArmsItemsData = null;
          var car_d0:CarItemsData = null;
          var car_d1:CarItemsData = null;
+         var dragged:Boolean = this.dragCtrl.visible;
+         var longPress:Boolean = !Multitouch.supportsTouchEvents || getTimer() - this.mobilePressStartedAt >= 500;
          this.dragCtrl.stopDraging();
          if(getTimer() - PageBox.lastUISwitchAt < 220)
          {
@@ -134,6 +144,17 @@ package UI._new.change
          var fa2:* = e.target;
          var fa0:ChangeIconBox = this.dragCtrl.dragFather;
          var canDragUpB:Boolean = false;
+         if(Multitouch.supportsTouchEvents)
+         {
+            if(longPress)
+            {
+               Game.uiGroup.closeMobileItemTip();
+            }
+            else if(!dragged && (ic2.state == "fill" || ic2.state == "lock"))
+            {
+               Game.uiGroup.itemsIconClick(e);
+            }
+         }
          if(Boolean(this.dragCtrl.dragTarget) && ic2.state != "lock")
          {
             if(!(fa0.type == "car" && fa0.dataType == "equip" && ic2.state != "fill"))
@@ -224,12 +245,12 @@ package UI._new.change
                }
             }
          }
-         if(ic2.state == "fill" && !canDragUpB)
+         if(ic2.state == "fill" && !canDragUpB && !dragged && longPress)
          {
             CtrlListCtrl.iconClick(ic2,fa2);
             CtrlListCtrl.fleshFun = this.fleshData;
          }
-         if(ic2.state == "lock")
+         if(ic2.state == "lock" && longPress)
          {
             CtrlListCtrl.unlockClick(ic2,fa2);
          }

@@ -24,6 +24,7 @@ if not exist "%BUILD_DIR%\tools\audio" mkdir "%BUILD_DIR%\tools\audio"
 if not exist "%BUILD_DIR%\ui\chip-sell" mkdir "%BUILD_DIR%\ui\chip-sell"
 if not exist "%BUILD_DIR%\ui\auto-level" mkdir "%BUILD_DIR%\ui\auto-level"
 if not exist "%BUILD_DIR%\ui\pause-settings" mkdir "%BUILD_DIR%\ui\pause-settings"
+if not exist "%BUILD_DIR%\ui\support" mkdir "%BUILD_DIR%\ui\support"
 
 for /f "usebackq tokens=1,*" %%H in ("%MANIFEST%") do call :copy_resource "%%H" "%%I"
 if defined COPY_FAILED goto copy_failed
@@ -64,6 +65,9 @@ if not exist "%REPO_ROOT%\assets\ui\pause-settings\button-normal.png" goto missi
 if not exist "%REPO_ROOT%\assets\ui\pause-settings\button-hover.png" goto missing_input
 copy /y "%REPO_ROOT%\assets\ui\pause-settings\button-normal.png" "%BUILD_DIR%\ui\pause-settings\button-normal.png" >nul
 copy /y "%REPO_ROOT%\assets\ui\pause-settings\button-hover.png" "%BUILD_DIR%\ui\pause-settings\button-hover.png" >nul
+if errorlevel 1 goto copy_failed
+if not exist "%REPO_ROOT%\assets\ui\support\afdian-support.jpg" goto missing_input
+copy /y "%REPO_ROOT%\assets\ui\support\afdian-support.jpg" "%BUILD_DIR%\ui\support\afdian-support.jpg" >nul
 if errorlevel 1 goto copy_failed
 
 if defined RECOMMENDED_BGM_SOURCE if exist "!RECOMMENDED_BGM_SOURCE!" (

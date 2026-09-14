@@ -7,6 +7,8 @@ package gameAll.api.save
    import flash.net.URLLoaderDataFormat;
    import flash.net.URLRequest;
    import flash.net.URLRequestMethod;
+   import flash.net.SharedObject;
+   import flash.system.Capabilities;
    import flash.utils.ByteArray;
    import flash.utils.getTimer;
    
@@ -40,6 +42,8 @@ package gameAll.api.save
       private var queuedWriteYes:Array = [];
       
       private var queuedWriteNo:Array = [];
+
+      private var mobileStoreName:String = "superalloy_mobile_save";
       
       public function LocalSave()
       {
@@ -101,6 +105,11 @@ package gameAll.api.save
       
       private function startWriteServer(data:*, yesArr:Array, noArr:Array) : *
       {
+         if(this.isAIRRuntime())
+         {
+            this.writeAIRStore(data,yesArr,noArr);
+            return;
+         }
          var bytes:ByteArray = new ByteArray();
          bytes.writeObject(data);
          bytes.deflate();
@@ -186,6 +195,11 @@ package gameAll.api.save
          this.readMode = mode;
          this.readYes = _yesFun;
          this.readNo = _noFun;
+         if(this.isAIRRuntime())
+         {
+            this.readAIRStore();
+            return;
+         }
          var request:URLRequest = new URLRequest(this.saveURL + "?t=" + getTimer());
          request.method = URLRequestMethod.GET;
          this.readLoader = new URLLoader();
@@ -194,6 +208,86 @@ package gameAll.api.save
          this.readLoader.addEventListener(IOErrorEvent.IO_ERROR,this.readServerFallback);
          this.readLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR,this.readServerFallback);
          this.readLoader.load(request);
+      }
+
+      public function CreateBackup(callback:Function = null) : void
+      {
+         if(!this.isAIRRuntime())
+         {
+            if(callback != null)
+            {
+               callback(false);
+            }
+            return;
+         }
+         try
+         {
+            var so:SharedObject = SharedObject.getLocal(this.mobileStoreName,"/");
+            if(so.data.saveContainer == null)
+            {
+               if(callback != null)
+               {
+                  callback(false);
+               }
+               return;
+            }
+            so.data.lastGoodSave = so.data.saveContainer;
+            so.flush();
+            if(callback != null)
+            {
+               callback(true);
+            }
+         }
+         catch(error:Error)
+         {
+            if(callback != null)
+            {
+               callback(false);
+            }
+         }
+      }
+
+      private function isAIRRuntime() : Boolean
+      {
+         return Capabilities.playerType == "Desktop";
+      }
+
+      private function writeAIRStore(data:*, yesArr:Array, noArr:Array) : void
+      {
+         try
+         {
+            var so:SharedObject = SharedObject.getLocal(this.mobileStoreName,"/");
+            so.data.saveContainer = data;
+            so.flush();
+            for each(var yesFun in yesArr)
+            {
+               yesFun();
+            }
+         }
+         catch(error:Error)
+         {
+            for each(var noFun in noArr)
+            {
+               noFun("移动端存档写入失败");
+            }
+         }
+         this.finishWriteServer();
+      }
+
+      private function readAIRStore() : void
+      {
+         var root:Object = null;
+         try
+         {
+            var so:SharedObject = SharedObject.getLocal(this.mobileStoreName,"/");
+            root = so.data.saveContainer;
+         }
+         catch(error:Error)
+         {
+            root = null;
+         }
+         this.loadRoot(root);
+         this.finishRead();
       }
       
       private function readServerComplete(e:Event) : *

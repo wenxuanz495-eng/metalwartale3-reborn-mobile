@@ -306,7 +306,6 @@ package gameAll
             return;
          }
          this.UIG.show("gameFail");
-         this.UIG.gameoverUI.failShow(this.LG.state);
          this.GD.setLife(1,"mul");
          if(this.LG.state == "extra")
          {
@@ -407,7 +406,6 @@ package gameAll
             Game.uiGroup.unionUI.FisCityFight();
          }
          this.UIG.show("gameWin");
-         this.UIG.gameoverUI.winShow(this.LG.state);
          this.awardFirstClearMCoin();
          this.gameOverFlash("win");
          Game.uiGroup.saveDataNoUI();
@@ -839,7 +837,6 @@ package gameAll
       
       public function gamingOver() : *
       {
-         this.GAME.music.play(10000);
          this.hero.stopAllImage();
          this.dieDelay.gameOver();
       }

@@ -23,13 +23,26 @@ package data
       
       private function removeAndAddItem() : void
       {
-         var myContextMenu:* = new ContextMenu();
-         var item:ContextMenuItem = new ContextMenuItem(this.myName);
-         var item2:ContextMenuItem = new ContextMenuItem(Game.versionNumber);
-         myContextMenu.hideBuiltInItems();
-         myContextMenu.customItems.push(item);
-         myContextMenu.customItems.push(item2);
-         this.target.contextMenu = myContextMenu;
+         var myContextMenu:ContextMenu = null;
+         try
+         {
+            if(this.target == null)
+            {
+               return;
+            }
+            myContextMenu = new ContextMenu();
+            myContextMenu.hideBuiltInItems();
+            if(myContextMenu.customItems == null)
+            {
+               return;
+            }
+            myContextMenu.customItems.push(new ContextMenuItem(this.myName));
+            myContextMenu.customItems.push(new ContextMenuItem(Game.versionNumber));
+            this.target.contextMenu = myContextMenu;
+         }
+         catch(error:Error)
+         {
+         }
       }
       
       private function itemSelectHandler(e:ContextMenuEvent) : void

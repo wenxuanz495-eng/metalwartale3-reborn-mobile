@@ -195,10 +195,19 @@
       public var modUnlockAll:Boolean = false;
       
       public var modCraftFree:Boolean = false;
+      public var modFreeSkillUpgrade:Boolean = false;
       
       public var modNoExtraCooldown:Boolean = false;
       
       public var modNoTaskCooldown:Boolean = false;
+
+      public var modInstantTaskComplete:Boolean = false;
+
+      public var modNoSkillCooldown:Boolean = false;
+
+      public var modFreeTasksAndPurchases:Boolean = false;
+      public var modPurchaseIgnoreConditions:Boolean = false;
+      public var modUnlimitedGifts:Boolean = false;
       
       public var modAllLevelsPassed:Boolean = false;
       
@@ -316,6 +325,10 @@
       
       public function delNowGoodsDefine(d0:GoodsDefine) : *
       {
+         if(this.modFreeTasksAndPurchases)
+         {
+            return;
+         }
          this.addCoin(-d0.price);
          this.materialsItems.useItemsNum("superalloy_X",d0.Xprice);
          this.materialsItems.useItemsNum("superalloy_Y",d0.Yprice);
@@ -382,8 +395,14 @@
          this.modOneHit = obj.hasOwnProperty("modOneHit") ? Boolean(obj.modOneHit) : false;
          this.modUnlockAll = obj.hasOwnProperty("modUnlockAll") ? Boolean(obj.modUnlockAll) : false;
          this.modCraftFree = obj.hasOwnProperty("modCraftFree") ? Boolean(obj.modCraftFree) : false;
+         this.modFreeSkillUpgrade = obj.hasOwnProperty("modFreeSkillUpgrade") ? Boolean(obj.modFreeSkillUpgrade) : false;
          this.modNoExtraCooldown = obj.hasOwnProperty("modNoExtraCooldown") ? Boolean(obj.modNoExtraCooldown) : false;
          this.modNoTaskCooldown = obj.hasOwnProperty("modNoTaskCooldown") ? Boolean(obj.modNoTaskCooldown) : false;
+         this.modInstantTaskComplete = obj.hasOwnProperty("modInstantTaskComplete") ? Boolean(obj.modInstantTaskComplete) : (obj.hasOwnProperty("modFreeTasksAndPurchases") ? Boolean(obj.modFreeTasksAndPurchases) : false);
+         this.modNoSkillCooldown = obj.hasOwnProperty("modNoSkillCooldown") ? Boolean(obj.modNoSkillCooldown) : false;
+         this.modFreeTasksAndPurchases = obj.hasOwnProperty("modFreeTasksAndPurchases") ? Boolean(obj.modFreeTasksAndPurchases) : false;
+         this.modPurchaseIgnoreConditions = obj.hasOwnProperty("modPurchaseIgnoreConditions") ? Boolean(obj.modPurchaseIgnoreConditions) : false;
+         this.modUnlimitedGifts = obj.hasOwnProperty("modUnlimitedGifts") ? Boolean(obj.modUnlimitedGifts) : false;
          this.autoCollectLifePer = obj.hasOwnProperty("autoCollectLifePer") ? Boolean(obj.autoCollectLifePer) : true;
          this.disableAutoCollectLifePer = obj.hasOwnProperty("disableAutoCollectLifePer") ? Boolean(obj.disableAutoCollectLifePer) : true;
          this.autoSellWhiteChip = obj.hasOwnProperty("autoSellWhiteChip") ? Boolean(obj.autoSellWhiteChip) : false;
@@ -516,6 +535,10 @@
          {
             this.completeModCraftResearch();
          }
+         if(this.modFreeSkillUpgrade)
+         {
+            this.completeModFreeSkillUpgrade();
+         }
          this.rankAdd.inData_byObj(obj.rankAdd);
          if(fleshB)
          {
@@ -551,8 +574,27 @@
          }
          for each(skill0 in Game.defineGroup.skill.arr)
          {
+            // The anti-gravity device is a normal player upgrade. The crafting
+            // modifier must not change its saved level.
+            if(skill0.name != "jump")
+            {
+               this.playerData.setSkillLevel(skill0.name,skill0.maxLevel);
+            }
+         }
+      }
+
+      private function completeModFreeSkillUpgrade() : void
+      {
+         var skill0:* = null;
+         for each(skill0 in Game.defineGroup.skill.arr)
+         {
             this.playerData.setSkillLevel(skill0.name,skill0.maxLevel);
          }
+         var normalMax:int = Math.min(149,this.level);
+         this.playerData.attackAdd.setLevel(normalMax);
+         this.playerData.subAdd.setLevel(normalMax);
+         this.playerData.lifeAdd.setLevel(normalMax);
+         this.playerData.defenceAdd.setLevel(normalMax);
       }
 
       private function migrateClaimedLevelGiftWeapons() : *

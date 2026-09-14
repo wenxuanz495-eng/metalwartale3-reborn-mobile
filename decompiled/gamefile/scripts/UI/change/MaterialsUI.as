@@ -495,7 +495,7 @@ package UI.change
             this.stopDraging();
          }
       }
-      
+
       private function mouseUp(event:MouseEvent) : *
       {
          if(this.dragTarget is ItemsIcon)

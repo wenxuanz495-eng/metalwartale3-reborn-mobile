@@ -36,7 +36,7 @@ package body.lieutenant
       public var followB:Boolean = true;
       
       public var shootB:Boolean = true;
-      
+
       public var enabled:Boolean = true;
       
       public function Lieutenant_AI(_BB:*)

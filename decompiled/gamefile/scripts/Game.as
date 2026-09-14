@@ -20,12 +20,15 @@ package
    import flash.display.MovieClip;
    import flash.display.Sprite;
    import flash.display.Stage;
+   import flash.display.StageAlign;
    import flash.display.StageScaleMode;
    import flash.events.Event;
    import flash.events.IOErrorEvent;
    import flash.events.KeyboardEvent;
    import flash.events.MouseEvent;
    import flash.events.SecurityErrorEvent;
+   import flash.geom.ColorTransform;
+   import flash.system.Capabilities;
    import flash.events.TimerEvent;
    import flash.net.URLLoader;
    import flash.net.URLRequest;
@@ -154,7 +157,7 @@ package
       public static var gameData:GameData = new GameData();
       
       public static var IC:ItemsController = new ItemsController();
-      
+
       public static var uiGroup:UIGroup = new UIGroup();
       
       public static var cheating:CheatingController = new CheatingController();
@@ -414,7 +417,7 @@ package
       private function checkVersion() : void
       {
          gameDefine.nowLevel = 1;
-         versionNumber = "11.3";
+         versionNumber = "1.1.1";
          TextLoaderManager.IsLocal = false;
       }
       
@@ -428,7 +431,19 @@ package
       
       private function firstLoad(e:Event = null) : *
       {
-         stage.scaleMode = StageScaleMode.NO_SCALE;
+         if(Capabilities.playerType == "Desktop")
+         {
+            this.configureMobileViewport();
+            stage.addEventListener(Event.RESIZE,this.mobileViewportResize);
+         }
+         else
+         {
+            stage.scaleMode = StageScaleMode.NO_SCALE;
+         }
+         if(Capabilities.playerType == "Desktop" && stage.colorCorrectionSupport)
+         {
+            stage.colorCorrection = "default";
+         }
          if(e != null)
          {
             removeEventListener(Event.ADDED_TO_STAGE,this.init);
@@ -436,6 +451,21 @@ package
          swfLoaderManager.addEventListener(Event.COMPLETE,this.affter_firstLoad);
          swfLoaderManager.addSWFLoader("swf/main910.swf","main","破坏物");
          swfLoaderManager.startLoad();
+      }
+
+      private function configureMobileViewport() : void
+      {
+         stage.scaleMode = StageScaleMode.NO_SCALE;
+         stage.align = StageAlign.TOP_LEFT;
+         this.x = 0;
+         this.y = 0;
+         this.scaleX = stage.stageWidth / stageWidth;
+         this.scaleY = stage.stageHeight / stageHeight;
+      }
+
+      private function mobileViewportResize(e:Event) : void
+      {
+         this.configureMobileViewport();
       }
       
       private function affter_firstLoad(e:Event) : *
@@ -449,6 +479,10 @@ package
       public function init(e:Event = null) : *
       {
          ME = this;
+         if(Capabilities.playerType == "Desktop")
+         {
+            this.transform.colorTransform = new ColorTransform(1.18,1.18,1.18,1,-22,-22,-22,0);
+         }
          this.checkVersion();
          payController = new PayController();
          payController2 = new PayController();
@@ -831,6 +865,11 @@ package
       
       public function chosenLevel(level0:int = 0) : *
       {
+         if(this.music != null)
+         {
+            this.music.stop();
+            this.music.stopFlashOnly();
+         }
          this.closeLevel();
          gameState = "chosen";
          trace("选择关卡：" + level0 + "   当前状态：" + gameState);
@@ -870,8 +909,28 @@ package
          }
          this.levelResourceRetryCount = 0;
          faseUI.hideLoaderBar();
+         faseUI.visible = false;
          this.removeEventListener(Event.ENTER_FRAME,this.loaderShowTimer);
+         setTimeout(this.forceMobileBattleView,50);
          this.startLevel();
+      }
+
+      private function forceMobileBattleView() : void
+      {
+         try
+         {
+            faseUI.hideLoaderBar();
+            faseUI.clearLogo();
+            faseUI.visible = false;
+            if(gameState == "gaming")
+            {
+               uiGroup.show("resumeGame");
+            }
+         }
+         catch(error:Error)
+         {
+            try{ reportClientError("mobile-battle-view","force battle view: " + error,"",LG.level.sceneID); }catch(eLog:*){}
+         }
       }
 
       internal function swfLoader_failed(e:Event) : *
@@ -976,6 +1035,7 @@ package
          gameSprite.shootMouseL.addEventListener(MouseEvent.MOUSE_DOWN,this.GamingMClick);
          gameSprite.shootMouseL.addEventListener(MouseEvent.MOUSE_UP,this.GamingMUp);
          gameSprite.shootMouseL.addEventListener(MouseEvent.MOUSE_WHEEL,this.GamingMWheel);
+         uiGroup.gamingUI.enterMobileBattleMode();
          uiGroup.show("resumeGame");
       }
       
@@ -989,6 +1049,7 @@ package
             LG.closeLevel();
             this.stage.quality = "high";
             dialogboxGroup.clearAllDialog();
+            uiGroup.gamingUI.leaveMobileBattleMode();
             eventGroup.gamingOver();
             trace("关闭关卡，  当前状态：" + gameState);
             if(gameState != "chosen")
@@ -1076,18 +1137,21 @@ package
          var hero:HeroCarBody = null;
          if(gamingTimerB)
          {
+            hero = BG.hero;
+            if(gameState == "gaming" && hero != null && hero.getCtrlB())
+            {
+               if(!uiGroup.gamingUI.applyMobileAim(hero))
+               {
+                  hero.inMouseXY(gameSprite.gameL.mouseX,gameSprite.gameL.mouseY);
+               }
+            }
             this.timer5.FTimer();
             this.timer1.FTimer();
-            hero = BG.hero;
             if(gameState == "gaming")
             {
                if(!(stage.focus is TextField) || TextField(stage.focus).type != TextFieldType.INPUT)
                {
                   stage.focus = stage;
-               }
-               if(hero.getCtrlB())
-               {
-                  hero.inMouseXY(gameSprite.gameL.mouseX,gameSprite.gameL.mouseY);
                }
                oneScene.inTargetMiddle(hero.img.x,hero.img.y - 120);
                LG.level.hitArea(hero.img.x,hero.img.y);

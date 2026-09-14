@@ -24,7 +24,7 @@ package sound
 
       public var bgmEnabled:Boolean = true;
 
-      public var recommendedBGMEnabled:Boolean = true;
+      public var recommendedBGMEnabled:Boolean = false;
 
       public var customPlaylistBGMEnabled:Boolean = false;
 
@@ -57,6 +57,9 @@ package sound
       private var externalBGMCommandSeq:Number = 0;
 
       private var activeRecommendedPlaylistID:String = "";
+
+      private var activeRecommendedPlaylistContext:String = "";
+
 
       private var externalBGMSupported:Object;
 
@@ -135,8 +138,11 @@ package sound
             }
             else
             {
-               this.recommendedBGMEnabled = true;
-               this.bgmEnabled = false;
+               this.recommendedBGMEnabled = false;
+               if(settings.data.bgmEnabled === undefined)
+               {
+                  this.bgmEnabled = true;
+               }
             }
             if(settings.data.customPlaylistBGMEnabled !== undefined)
             {
@@ -161,6 +167,12 @@ package sound
                if(settings.data.mainPlaylistID !== undefined) this.mainPlaylistID = String(settings.data.mainPlaylistID);
                if(settings.data.battlePlaylistID !== undefined) this.battlePlaylistID = String(settings.data.battlePlaylistID);
                this.resolveNamedPlaylists();
+               if(this.recommendedBGMEnabled)
+               {
+                  if(this.mainPlaylistID.indexOf("custom_") == 0) this.mainPlaylistID = "developer_main";
+                  if(this.battlePlaylistID.indexOf("custom_") == 0) this.battlePlaylistID = "developer_battle";
+                  this.resolveNamedPlaylists();
+               }
             }
          }
          catch(error:Error)
@@ -450,11 +462,15 @@ package sound
          if(!value)
          {
             this.activeRecommendedPlaylistID = "";
+            this.activeRecommendedPlaylistContext = "";
          }
          if(value)
          {
             this.bgmEnabled = false;
             this.customPlaylistBGMEnabled = false;
+            if(this.mainPlaylistID.indexOf("custom_") == 0) this.mainPlaylistID = "developer_main";
+            if(this.battlePlaylistID.indexOf("custom_") == 0) this.battlePlaylistID = "developer_battle";
+            this.resolveNamedPlaylists();
          }
          this.restartCurrentExternalBGM();
       }
@@ -463,22 +479,34 @@ package sound
       {
          this.customPlaylistBGMEnabled = value;
          this.activeRecommendedPlaylistID = "";
-         if(value)
+         this.activeRecommendedPlaylistContext = "";
+         if(!value)
          {
+            this.recommendedBGMEnabled = true;
+            this.bgmEnabled = false;
+         }
+          if(value)
+          {
             this.bgmEnabled = false;
             this.recommendedBGMEnabled = false;
             if(this.externalBGMOwner != null) this.externalBGMOwner.stopFlashOnly();
             this.syncCurrentRecommendedPlaylist();
          }
          else if(this.externalBGMReady)
-         {
-            this.externalBGMRequest("/api/bgm/stop");
-         }
+          {
+            if(this.externalBGMOwner != null) this.externalBGMOwner.stopFlashOnly();
+            this.syncCurrentRecommendedPlaylist();
+          }
       }
 
       private function playlistBGMEnabled() : Boolean
       {
          return this.recommendedBGMEnabled || this.customPlaylistBGMEnabled;
+      }
+
+      private function currentBGMContext() : String
+      {
+         return Game.gameState == "gaming" || Game.gameState == "gaming2" ? "battle" : "main";
       }
 
       public function setPlaylist(context:String, ids:Array, mode:String) : *
@@ -545,7 +573,7 @@ package sound
 
       public function assignNamedPlaylist(id:String, context:String) : *
       {
-         if(this.getNamedPlaylist(id) == null) return;
+         if(this.getNamedPlaylist(id) == null || this.recommendedBGMEnabled && String(id).indexOf("custom_") == 0) return;
          if(context == "battle") this.battlePlaylistID = id;
          else this.mainPlaylistID = id;
          this.resolveNamedPlaylists();
@@ -558,32 +586,49 @@ package sound
          // an original Flash BGM label to become active.  Player-library tracks
          // are commonly previewed before the playlist is saved, so requiring
          // externalBGMLabel here left the saved playlist as a one-off preview.
-         if(!this.playlistBGMEnabled() || !this.externalBGMReady) return;
-         var context:String = Game.gameState == "gaming" ? "battle" : "main";
+          if(!this.playlistBGMEnabled() || !this.externalBGMReady) return;
+         var context:String = this.currentBGMContext();
          var ids:Array = context == "battle" ? this.battlePlaylist : this.mainPlaylist;
          var mode:String = context == "battle" ? this.battlePlaylistMode : this.mainPlaylistMode;
          var playlistID:String = context == "battle" ? this.battlePlaylistID : this.mainPlaylistID;
-         var playlist:Object = null;
-         if(this.recommendedBGMEnabled)
+         var playlist:Object = this.getNamedPlaylist(playlistID);
+         if(playlist != null)
          {
-            playlist = this.getNamedPlaylist(context == "battle" ? "developer_battle" : "developer_main");
-            if(playlist != null)
-            {
-               ids = (playlist.tracks as Array).concat();
-               mode = String(playlist.mode);
-               playlistID = String(playlist.id);
-            }
+            ids = (playlist.tracks as Array).concat();
+            mode = String(playlist.mode);
          }
          if(this.customPlaylistBGMEnabled && playlistID.indexOf("custom_") != 0)
          {
             this.activeRecommendedPlaylistID = "";
+            this.activeRecommendedPlaylistContext = "";
             this.externalBGMRequest("/api/bgm/stop");
             return;
          }
-         if(playlistID == "" || ids.length == 0) return;
-         if(playlistID != "" && playlistID != this.activeRecommendedPlaylistID)
+         if(playlistID == "" || ids.length == 0)
+         {
+            this.activeRecommendedPlaylistID = "";
+            this.activeRecommendedPlaylistContext = "";
+            this.externalBGMRequest("/api/bgm/stop");
+            return;
+         }
+         if(this.recommendedBGMEnabled && playlistID.indexOf("custom_") == 0)
+         {
+            playlistID = context == "battle" ? "developer_battle" : "developer_main";
+            playlist = this.getNamedPlaylist(playlistID);
+            if(playlist == null || !(playlist.tracks is Array) || (playlist.tracks as Array).length == 0)
+            {
+               this.activeRecommendedPlaylistID = "";
+               this.activeRecommendedPlaylistContext = "";
+               this.externalBGMRequest("/api/bgm/stop");
+               return;
+            }
+            ids = (playlist.tracks as Array).concat();
+            mode = String(playlist.mode);
+         }
+         if(playlistID != "" && (playlistID != this.activeRecommendedPlaylistID || context != this.activeRecommendedPlaylistContext))
          {
             this.activeRecommendedPlaylistID = playlistID;
+            this.activeRecommendedPlaylistContext = context;
             this.externalBGMRequest("/api/bgm/playlist/start?context=" + context + "&mode=" + mode + "&tracks=" + ids.join(",") + "&force=1");
          }
          else
@@ -630,6 +675,16 @@ package sound
       {
          var main:Object = this.getNamedPlaylist(this.mainPlaylistID);
          var battle:Object = this.getNamedPlaylist(this.battlePlaylistID);
+         if(main == null)
+         {
+            main = this.getNamedPlaylist("developer_main");
+            if(main != null) this.mainPlaylistID = "developer_main";
+         }
+         if(battle == null)
+         {
+            battle = this.getNamedPlaylist("developer_battle");
+            if(battle != null) this.battlePlaylistID = "developer_battle";
+         }
          if(main == null && this.playlistDefinitions.length > 0)
          {
             main = this.playlistDefinitions[0];
@@ -893,39 +948,51 @@ package sound
 
       private function playRecommendedPlaylist() : *
       {
-         var context:String = Game.gameState == "gaming" ? "battle" : "main";
+         var context:String = this.currentBGMContext();
          var ids:Array = context == "battle" ? this.battlePlaylist : this.mainPlaylist;
          var mode:String = context == "battle" ? this.battlePlaylistMode : this.mainPlaylistMode;
          var playlistID:String = context == "battle" ? this.battlePlaylistID : this.mainPlaylistID;
-         var playlist:Object = null;
-         if(this.recommendedBGMEnabled)
+         var playlist:Object = this.getNamedPlaylist(playlistID);
+         if(playlist != null)
          {
-            playlist = this.getNamedPlaylist(context == "battle" ? "developer_battle" : "developer_main");
-            if(playlist != null)
-            {
-               ids = (playlist.tracks as Array).concat();
-               mode = String(playlist.mode);
-               playlistID = String(playlist.id);
-            }
+            ids = (playlist.tracks as Array).concat();
+            mode = String(playlist.mode);
          }
          if(this.customPlaylistBGMEnabled && playlistID.indexOf("custom_") != 0)
          {
             this.activeRecommendedPlaylistID = "";
+            this.activeRecommendedPlaylistContext = "";
             this.externalBGMRequest("/api/bgm/stop");
             return;
          }
          if(ids.length == 0)
          {
             this.activeRecommendedPlaylistID = "";
+            this.activeRecommendedPlaylistContext = "";
             this.externalBGMRequest("/api/bgm/stop");
             return;
          }
-         if(playlistID != "" && playlistID == this.activeRecommendedPlaylistID)
+         if(this.recommendedBGMEnabled && playlistID.indexOf("custom_") == 0)
+         {
+            playlistID = context == "battle" ? "developer_battle" : "developer_main";
+            playlist = this.getNamedPlaylist(playlistID);
+            if(playlist == null || !(playlist.tracks is Array) || (playlist.tracks as Array).length == 0)
+            {
+               this.activeRecommendedPlaylistID = "";
+               this.activeRecommendedPlaylistContext = "";
+               this.externalBGMRequest("/api/bgm/stop");
+               return;
+            }
+            ids = (playlist.tracks as Array).concat();
+            mode = String(playlist.mode);
+         }
+         if(playlistID != "" && playlistID == this.activeRecommendedPlaylistID && context == this.activeRecommendedPlaylistContext)
          {
             this.externalBGMSendVolume();
             return;
          }
          this.activeRecommendedPlaylistID = playlistID;
+         this.activeRecommendedPlaylistContext = context;
          // Scene changes must not restart a player track that is still present
          // in the destination playlist. Explicit playlist edits use
          // syncCurrentRecommendedPlaylist(), which keeps force=1 semantics.

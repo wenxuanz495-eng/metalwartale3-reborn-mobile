@@ -64,6 +64,8 @@ package body.hero
       public var hitRect:Rectangle = new Rectangle();
       
       public var noAttack_t:Number = -1;
+
+      public var mobileAimB:Boolean = false;
       
       public var ai:Hero_AI;
       

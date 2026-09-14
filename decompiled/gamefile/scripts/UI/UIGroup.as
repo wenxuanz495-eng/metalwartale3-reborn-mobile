@@ -57,6 +57,7 @@ package UI
    import body.define.OneArmsDefine;
    import body.hero.CarDefine;
    import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
    import flash.display.SimpleButton;
    import flash.display.Sprite;
    import flash.events.Event;
@@ -69,11 +70,14 @@ package UI
    import flash.net.URLRequestMethod;
    import flash.events.TimerEvent;
    import flash.geom.Point;
+   import flash.geom.Rectangle;
    import flash.media.SoundMixer;
    import flash.media.SoundTransform;
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
    import flash.text.TextFormat;
+   import flash.ui.Multitouch;
+   import flash.ui.MultitouchInputMode;
    import flash.utils.Timer;
    import flash.utils.getTimer;
    import gameAll.data.ArmsItemsData;
@@ -90,6 +94,11 @@ package UI
    
    public class UIGroup
    {
+      private var mobileCloseProxy:Sprite;
+
+      private var mobileCloseTarget:DisplayObject;
+
+      private var mobileItemTipPinned:Boolean = false;
       
       public var normalShopB:Boolean = false;
       
@@ -210,6 +219,22 @@ package UI
       public function UIGroup()
       {
          super();
+         this.initializeTouchUICompatibility();
+      }
+
+      private function initializeTouchUICompatibility() : void
+      {
+         try
+         {
+            if(Multitouch.supportsTouchEvents)
+            {
+               Multitouch.inputMode = MultitouchInputMode.NONE;
+               Multitouch.mapTouchToMouse = true;
+            }
+         }
+         catch(error:Error)
+         {
+         }
       }
       
       public function firstInit() : *
@@ -223,6 +248,10 @@ package UI
          var sib:ShopIconBox = null;
          var liveness_box:ItemsBox = null;
          this.gameSprite = Game.gameSprite;
+         if(Multitouch.supportsTouchEvents && Game.ME.stage != null)
+         {
+            Game.ME.stage.addEventListener(MouseEvent.MOUSE_DOWN,this.mobileItemTipStageDown,true);
+         }
          this.allback = new AllBack();
          this.allback.init();
          this.gameSprite.topUIL.addChild(this.allback);
@@ -337,6 +366,7 @@ package UI
          this.checkTip = new MustTopDialogBox();
          this.gameSprite.goHomeL.addChild(this.checkTip);
          this.checkTip.visible = false;
+         this.initMobileCloseProxy();
          this.returnMenuTab.visible = false;
          this.loginUI.createRole_btn.addEventListener(MouseEvent.CLICK,this.buttonClick);
          this.leftUI.menu_btn.addEventListener(MouseEvent.CLICK,this.buttonClick);
@@ -517,6 +547,7 @@ package UI
       
       public function gameOverFlesh(fleshB:Boolean = true) : *
       {
+         this.allback.closeSoundSettings();
          this.chooseLevelUI.fleshLock();
          if(fleshB)
          {
@@ -531,6 +562,10 @@ package UI
       
       public function show(str:String) : *
       {
+         if(Game.gameState == "gaming" && str != "resumeGame")
+         {
+            this.gamingUI.leaveMobileBattleMode();
+         }
          trace("当前命令：" + str);
          if(this.researchUI.visible)
          {
@@ -666,10 +701,16 @@ package UI
             }
             else if(str == "startGame")
             {
+               this.clearMobileTutorialOverlay();
                if(Game.gameState == "no" || Game.gameState == "chosen")
                {
+                  if(Game.ME.music != null)
+                  {
+                     Game.ME.music.play(10000);
+                  }
                   this.menu.showBtn("main");
                   this.mainUI.visible = true;
+                  this.mainUI._main.visible = true;
                   this.infoUI.fleshData();
                   this.loginUI.clearAll();
                   this.fleshLabelNew();
@@ -739,6 +780,7 @@ package UI
                this.show("resumeGame");
                this.changeUI.showAll();
                this.menu.visible = false;
+               this.gamingUI.leaveMobileBattleMode();
             }
             else if(str == "bagToMenu_shop")
             {
@@ -761,6 +803,7 @@ package UI
                this.allback.visible = false;
                this.allback.stopAll();
                Game.eventGroup.resumeGame();
+               this.gamingUI.enterMobileBattleMode();
             }
             else if(str == "equip" || str == "main_equip")
             {
@@ -770,6 +813,11 @@ package UI
             }
             else if(str == "chooseLevel" || str == "main_startGame" || str == "continueGame" || str == "gonextcontinue")
             {
+               this.clearMobileTutorialOverlay();
+               if(Game.ME.music != null)
+               {
+                  Game.ME.music.play(10000);
+               }
                this.menu.showBtn("extra");
                this.chooseLevelUI.visible = true;
                this.chooseLevelUI.fleshData();
@@ -822,18 +870,20 @@ package UI
             }
             else if(str == "gameFail")
             {
+               this.enableMobileGameOverInput();
                this.pendingAutoLevelAction = "";
                this.gameoverUItween();
                this.gameoverUI.visible = true;
                this.refreshNextLevelButton(false);
-               this.gameoverUI.failShow();
+               this.gameoverUI.failShow(Game.LG.state);
             }
             else if(str == "gameWin")
             {
+               this.enableMobileGameOverInput();
                this.gameoverUItween();
                this.gameoverUI.visible = true;
                this.refreshNextLevelButton(true);
-               this.gameoverUI.winShow();
+               this.gameoverUI.winShow(Game.LG.state);
                this.beginAutoLevelAction();
             }
          }
@@ -1026,6 +1076,108 @@ package UI
          this.checkTip.showCheck("是否同时备份当前存档？\n取消：仅保存；确定：保存并备份。",this.saveDataWithBackup,this.saveDataOnly);
       }
 
+      private function initMobileCloseProxy() : void
+      {
+         this.mobileCloseProxy = new Sprite();
+         this.mobileCloseProxy.buttonMode = true;
+         this.mobileCloseProxy.mouseChildren = false;
+         this.mobileCloseProxy.visible = false;
+         this.mobileCloseProxy.addEventListener(MouseEvent.CLICK,this.mobileCloseProxyClick);
+         this.mobileCloseProxy.addEventListener(Event.ENTER_FRAME,this.updateMobileCloseProxy);
+         this.gameSprite.goHomeL.addChild(this.mobileCloseProxy);
+      }
+
+      private function updateMobileCloseProxy(event:Event) : void
+      {
+         var target0:DisplayObject = this.findTopVisibleReturnButton(this.gameSprite);
+         this.mobileCloseTarget = target0;
+         if(target0 == null || target0.stage == null)
+         {
+            this.mobileCloseProxy.visible = false;
+            return;
+         }
+         var bounds0:Rectangle = target0.getBounds(target0.stage);
+         bounds0.inflate(12,12);
+         var point0:Point = this.gameSprite.goHomeL.globalToLocal(new Point(bounds0.x,bounds0.y));
+         this.mobileCloseProxy.graphics.clear();
+         this.mobileCloseProxy.graphics.beginFill(0,0);
+         this.mobileCloseProxy.graphics.drawRect(0,0,bounds0.width,bounds0.height);
+         this.mobileCloseProxy.graphics.endFill();
+         this.mobileCloseProxy.x = point0.x;
+         this.mobileCloseProxy.y = point0.y;
+         this.mobileCloseProxy.visible = true;
+         this.gameSprite.goHomeL.setChildIndex(this.mobileCloseProxy,this.gameSprite.goHomeL.numChildren - 1);
+      }
+
+      private function findTopVisibleReturnButton(container0:DisplayObjectContainer) : DisplayObject
+      {
+         var child0:DisplayObject = null;
+         var found0:DisplayObject = null;
+         for(var i:int = container0.numChildren - 1; i >= 0; i--)
+         {
+            child0 = container0.getChildAt(i);
+            if(child0 == this.mobileCloseProxy || !child0.visible || child0.alpha <= 0)
+            {
+               continue;
+            }
+            if(child0.name == "return_btn" && child0.mouseEnabled && child0.hasEventListener(MouseEvent.CLICK))
+            {
+               return child0;
+            }
+            if(child0 is DisplayObjectContainer)
+            {
+               found0 = this.findTopVisibleReturnButton(child0 as DisplayObjectContainer);
+               if(found0 != null)
+               {
+                  return found0;
+               }
+            }
+         }
+         return null;
+      }
+
+      private function mobileCloseProxyClick(event:MouseEvent) : void
+      {
+         var target0:DisplayObject = this.mobileCloseTarget;
+         if(target0 != null && target0.stage != null && target0.visible)
+         {
+            target0.dispatchEvent(new MouseEvent(MouseEvent.CLICK,true,false));
+         }
+      }
+
+      private function enableMobileGameOverInput() : void
+      {
+         try
+         {
+            Multitouch.inputMode = MultitouchInputMode.NONE;
+            Multitouch.mapTouchToMouse = true;
+         }
+         catch(error:Error)
+         {
+         }
+      }
+
+      private function clearMobileTutorialOverlay() : void
+      {
+         if(this.allback != null)
+         {
+            this.allback.closeSoundSettings();
+         }
+         if(this.tutorialUI == null)
+         {
+            return;
+         }
+         this.tutorialUI.visible = false;
+         this.tutorialUI.mouseEnabled = false;
+         this.tutorialUI.mouseChildren = false;
+         if(this.tutorialUI.mc != null)
+         {
+            this.tutorialUI.mc.visible = false;
+            this.tutorialUI.mc.mouseEnabled = false;
+            this.tutorialUI.mc.mouseChildren = false;
+         }
+      }
+
       private function saveDataOnly() : *
       {
          this.showSaveReturn = true;
@@ -1045,6 +1197,11 @@ package UI
 
       public function requestSaveBackup(callback:Function = null) : *
       {
+         if(flash.system.Capabilities.playerType == "Desktop")
+         {
+            Game.save_api.localSave.CreateBackup(callback);
+            return;
+         }
          var req:URLRequest = null;
          var loader:URLLoader = null;
          var finished:Boolean = false;
@@ -1351,12 +1508,36 @@ package UI
       public function itemsIconOut(event:* = null) : *
       {
          trace("离开事件");
-         this.tipBox.hide();
+         if(!Multitouch.supportsTouchEvents || !this.mobileItemTipPinned)
+         {
+            this.tipBox.hide();
+         }
       }
       
       public function itemsIconClick(event:*) : *
       {
+         if(Multitouch.supportsTouchEvents)
+         {
+            this.mobileItemTipPinned = true;
+            this.itemsIconOver(event);
+            return;
+         }
          this.tipBox.hide();
+      }
+
+      public function closeMobileItemTip() : void
+      {
+         this.mobileItemTipPinned = false;
+         this.tipBox.hide();
+      }
+
+      private function mobileItemTipStageDown(event:MouseEvent) : void
+      {
+         if(this.mobileItemTipPinned)
+         {
+            this.mobileItemTipPinned = false;
+            this.tipBox.hide();
+         }
       }
       
       public function itemsIconOver(event:*) : *
@@ -1384,7 +1565,7 @@ package UI
          {
             iai = event.target;
          }
-         var p0:Point = iai.localToGlobal(new Point());
+         var p0:Point = this.tipBox.parent.globalToLocal(iai.localToGlobal(new Point()));
          var mx:* = -1;
          if(iai.itemsData != null)
          {
@@ -1475,7 +1656,7 @@ package UI
          {
             iai = event.target;
          }
-         var p0:Point = iai.localToGlobal(new Point());
+         var p0:Point = this.tipBox.parent.globalToLocal(iai.localToGlobal(new Point()));
          if(iai.state == "fill")
          {
             if(iai.itemsData is OneArmsDefine)

@@ -155,6 +155,11 @@ package gameAll.data
             {
                td0.state = "ing";
                this.reserveChallengeCard("normal",num0);
+               if(Game.gameData.modInstantTaskComplete)
+               {
+                  td0.completeNum = td0.maxNum;
+                  td0.state = "complete";
+               }
             }
          }
       }

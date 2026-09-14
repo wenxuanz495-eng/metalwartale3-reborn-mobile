@@ -109,8 +109,12 @@ package gameAll.data.collect
          this.nowTask = this.getTrueTask_byIndex(nowIndex);
          if(this.nowTask != null)
          {
-            this.nowTask.state = "ing";
-            this.nowNum = 0;
+             this.nowTask.state = "ing";
+             this.nowNum = 0;
+             if(Game.gameData.modInstantTaskComplete)
+             {
+                this.nowTask.state = "complete";
+             }
          }
       }
       
@@ -131,6 +135,7 @@ package gameAll.data.collect
          this.nowTask.state = "complete";
          this.nowNum = 0;
          Game.uiGroup.gamingUI.fleshTaskBox();
+         Game.uiGroup.saveDataNoUI("完成扫荡任务");
       }
       
       public function getGiftNowTask() : *

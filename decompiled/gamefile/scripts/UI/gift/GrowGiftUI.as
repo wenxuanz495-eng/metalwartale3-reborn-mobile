@@ -131,14 +131,14 @@ package UI.gift
                (this["mc_list_" + i]["btn_buy"] as SimpleButton).visible = true;
                color = "#ff0000";
                hasCount = 1 - Game.gameData.giftData.GetGrowShopedByID(obj.Id);
-               if(nowMax >= obj.NeedNum && hasCount > 0)
+               if(nowMax >= obj.NeedNum && (hasCount > 0 || Game.gameData.modUnlimitedGifts))
                {
                   color = "#00ff00";
                   (this["mc_list_" + i]["btn_buy"] as SimpleButton).alpha = 1;
                   (this["mc_list_" + i]["btn_buy"] as SimpleButton).mouseEnabled = true;
                }
                starStr = "";
-               if(hasCount <= 0)
+               if(hasCount <= 0 && !Game.gameData.modUnlimitedGifts)
                {
                   starStr = "<font color=\'" + color + "\'>" + "已领取" + "</font>";
                }
@@ -161,7 +161,10 @@ package UI.gift
             this._tempID = ep["buyID"];
             var giftData:StarGiftData = Game.growGiftDefineGroup.GetOneGift(int(ep["buyID"]));
             Game.uiGroup.addGift_byArr(giftData.GiftArr,true,Game.gameData.level,true,true);
-            Game.gameData.giftData.AddGrowShopedByID(this._tempID);
+            if(!Game.gameData.modUnlimitedGifts)
+            {
+               Game.gameData.giftData.AddGrowShopedByID(this._tempID);
+            }
             this.updateUI();
             return;
          }

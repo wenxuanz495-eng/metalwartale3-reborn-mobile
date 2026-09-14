@@ -123,7 +123,10 @@ package body.skill
             for(n in this.dataArr)
             {
                s0 = this.dataArr[n];
-               s0.skillTimer();
+               if(s0.define.name != "jump" || s0.timeUseB || this.BB.mot.getFloorB())
+               {
+                  s0.skillTimer();
+               }
                if(s0.define.name == "change")
                {
                   s0.time_t = this.BB.img.change_t;

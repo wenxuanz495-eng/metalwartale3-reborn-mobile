@@ -87,15 +87,16 @@ package UI._new.change
       {
          ctrlList.visible = true;
          var p0:Point = ic0.localToGlobal(new Point());
-         ctrlList.x = p0.x;
-         ctrlList.y = p0.y;
-         if(p0.x < 200)
+         var local0:Point = ctrlList.parent.globalToLocal(p0);
+         ctrlList.x = local0.x;
+         ctrlList.y = local0.y;
+         if(local0.x < 200)
          {
             ctrlList.x += ctrlList.width + ic0.width;
          }
-         if(p0.y > 300)
+         if(local0.y > 300)
          {
-            ctrlList.y = p0.y + ic0.height - ctrlList.height;
+            ctrlList.y = local0.y + ic0.height - ctrlList.height;
          }
          if(ctrlList.stage != null)
          {

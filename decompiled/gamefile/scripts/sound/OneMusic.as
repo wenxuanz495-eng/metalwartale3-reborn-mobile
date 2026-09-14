@@ -22,20 +22,42 @@ package sound
          {
             return;
          }
+         if(this.getPlayB())
+         {
+            return;
+         }
          this.SC = this.s.play(0,_loopNum,new SoundTransform(_v0 * Game.SG.getMusicGain()));
       }
 
       override public function stop() : *
       {
-         if(!Game.SG.stopExternalMusic(this.label))
+         Game.SG.stopExternalMusic(this.label);
+         if(this.SC != null)
          {
-            super.stop();
+            try
+            {
+               this.SC.stop();
+            }
+            catch(error:Error)
+            {
+            }
+            this.SC = null;
          }
       }
 
       public function stopFlashOnly() : *
       {
-         super.stop();
+         if(this.SC != null)
+         {
+            try
+            {
+               this.SC.stop();
+            }
+            catch(error:Error)
+            {
+            }
+            this.SC = null;
+         }
       }
       
       public function tweenTo(_time:Number = 2, _end:Number = 0, _first:Number = -1) : *

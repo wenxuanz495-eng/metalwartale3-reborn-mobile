@@ -126,7 +126,7 @@ package UI.gift
          {
             this.showBtn(2);
          }
-         else if(unlock == 0)
+         else if(Game.gameData.modUnlimitedGifts || unlock == 0)
          {
             this.showBtn(0);
          }
@@ -240,7 +240,10 @@ package UI.gift
                Game.gameData.honorData.addHonor("mb_100000");
                Game.uiGroup.checkTip.showCheck2("已获得纪念称号：骨灰级死忠粉",2,null,null,2);
             }
-            Game.gameData.giftData.setUnlock(index0);
+            if(!Game.gameData.modUnlimitedGifts)
+            {
+               Game.gameData.giftData.setUnlock(index0);
+            }
             Game.uiGroup.saveDataNoUI();
             this.fleshData();
          }

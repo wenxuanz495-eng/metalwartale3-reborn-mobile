@@ -106,6 +106,8 @@ package UI._new.main
             this.growNewBadge.visible = false;
          }
          this.replaceButtonText(this.firstPayGift_btn,["首充礼包"],"新手礼包");
+         this.replaceButtonText(this.giftExchange_btn,["礼包兑换"],"感谢赞助");
+         this.replaceDisplayText(this,["礼包兑换"],"感谢赞助");
          // The visible label is a sibling timeline TextField, not a child of allGift_btn.
          this.replaceDisplayText(this,["累计充值值奖励","累计充值值礼包","累计充值奖励","累计充值礼包","累计MB礼包"],"累计MB奖励");
          this.createAutoLevelControls();
@@ -135,6 +137,7 @@ package UI._new.main
          this.addAutoLevelImage(button0,"ui/auto-level/button-normal.png","normal");
          this.addAutoLevelImage(button0,"ui/auto-level/button-selected.png","selected");
          text0.defaultTextFormat = new flash.text.TextFormat("_sans",14,16777215,true,null,null,null,null,"center");
+         text0.name = "label";
          text0.width = 114;
          text0.height = 24;
          text0.y = 7;
@@ -149,6 +152,7 @@ package UI._new.main
       {
          var loader0:Loader = new Loader();
          loader0.name = role0;
+         loader0.visible = false;
          loader0.mouseEnabled = false;
          loader0.contentLoaderInfo.addEventListener(Event.COMPLETE,this.autoLevelImageComplete);
          loader0.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR,this.autoLevelImageError);
@@ -158,9 +162,6 @@ package UI._new.main
 
       private function autoLevelImageComplete(e:Event) : *
       {
-         var loader0:Loader = e.target.loader as Loader;
-         loader0.content.width = 114;
-         loader0.content.height = 36;
          this.refreshAutoLevelControls();
       }
 

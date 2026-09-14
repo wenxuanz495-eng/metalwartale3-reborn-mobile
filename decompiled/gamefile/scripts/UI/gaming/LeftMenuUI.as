@@ -237,6 +237,7 @@ package UI.gaming
       
       public function showExtraGift() : *
       {
+         Game.uiGroup.gamingUI.leaveMobileBattleMode();
          this.extraGift.visible = true;
          Game.SG.playSound("get_task");
          this.extraGift.fleshData();
@@ -277,6 +278,22 @@ package UI.gaming
       public function volumeClick(e:*) : *
       {
          Game.uiGroup.allback.openSoundSettings();
+      }
+
+      public function mobileVolumeClick(stageX0:Number, stageY0:Number) : Boolean
+      {
+         if(this.volume_btn == null || !this.volume_btn.visible || this.volume_btn.stage == null || Game.uiGroup.allback.isSettingsOpen())
+         {
+            return false;
+         }
+         var bounds0:Rectangle = this.volume_btn.pic.getBounds(this.volume_btn.stage);
+         bounds0.inflate(4,4);
+         if(!bounds0.contains(stageX0,stageY0))
+         {
+            return false;
+         }
+         this.volumeClick(null);
+         return true;
       }
       
       public function gotoBag(e:*) : *

@@ -430,7 +430,7 @@ package UI.dialog
                this.type_t = 0;
                if(this.text.length < this.str.length)
                {
-                  this.text.appendText(this.str.substr(this.text.length,1));
+                  this.text.text = this.str.substr(0,this.text.length + 1);
                   this.loopSp.play();
                }
                else

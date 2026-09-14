@@ -152,7 +152,7 @@ package UI.shop
       {
          var d0:NormalMustDefine = new NormalMustDefine();
          d0.MCoin = Game.gameDefine.refreshExchange;
-         Game.uiGroup.checkTip.showMustCheck(d0,"立即刷新需要",this.materialsClick_1);
+         Game.uiGroup.checkTip.showMustCheck(d0,"立即刷新需要",this.materialsClick_1,null,"",false);
       }
       
       private function materialsClick_1() : void
@@ -312,7 +312,7 @@ package UI.shop
             mc["buy_btn2"]["txt"].text = "已经兑换";
             return;
          }
-         if(gd[gtype] >= dt.ed.EPayCount)
+         if(Game.gameData.modPurchaseIgnoreConditions || gd[gtype] >= dt.ed.EPayCount)
          {
             mc["buy_btn"].visible = true;
             mc["buy_btn2"].visible = false;
@@ -382,7 +382,14 @@ package UI.shop
          d0[gtype] = dt.ed.EPayCount;
          d0.name = dt.ed.Name;
          this._tempDT = dt;
-         Game.uiGroup.checkTip.showShopCheck(d0,this.onBuyClick,false,surplusNum);
+         if(Game.gameData.modPurchaseIgnoreConditions)
+         {
+            this.onBuyClick();
+         }
+         else
+         {
+            Game.uiGroup.checkTip.showShopCheck(d0,this.onBuyClick,false,surplusNum);
+         }
       }
       
       protected function onBuyClick() : void
@@ -410,21 +417,24 @@ package UI.shop
                break;
             }
          }
-         switch(ed.EPayType)
+         if(!Game.gameData.modPurchaseIgnoreConditions)
          {
-            case "金币":
-               value = 0;
-               value = Math.ceil(Game.gameData.vipData.discount * ed.EPayCount);
-               Game.gameData.addCoin(-value);
-               break;
-            case "超合金X":
-               this.GD.materialsItems.useItemsNum("superalloy_X",ed.EPayCount);
-               break;
-            case "超合金Y":
-               this.GD.materialsItems.useItemsNum("superalloy_Y",ed.EPayCount);
-               break;
-            case "荣誉勋章":
-               this.GD.propsItems.useItemsNum("justice_badge",ed.EPayCount);
+            switch(ed.EPayType)
+            {
+               case "金币":
+                  value = 0;
+                  value = Math.ceil(Game.gameData.vipData.discount * ed.EPayCount);
+                  Game.gameData.addCoin(-value);
+                  break;
+               case "超合金X":
+                  this.GD.materialsItems.useItemsNum("superalloy_X",ed.EPayCount);
+                  break;
+               case "超合金Y":
+                  this.GD.materialsItems.useItemsNum("superalloy_Y",ed.EPayCount);
+                  break;
+               case "荣誉勋章":
+                  this.GD.propsItems.useItemsNum("justice_badge",ed.EPayCount);
+            }
          }
          var giftName:String = ed.DropGroup[maxI];
          var gd:GoodsDefine = this.GDG.GetGoodsByName(giftName);
@@ -448,7 +458,10 @@ package UI.shop
                   {
                      Game.uiGroup.checkTip.showCheck2("该物品需要集齐地虎,风鹰,黑犀,雪獒,炎龙5辆战车才能兑换!",1);
                      this._tempDT.flag = 0;
-                     this.GD.propsItems.useItemsNum("justice_badge",-ed.EPayCount);
+                     if(!Game.gameData.modPurchaseIgnoreConditions)
+                     {
+                        this.GD.propsItems.useItemsNum("justice_badge",-ed.EPayCount);
+                     }
                      return;
                   }
                }

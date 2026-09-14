@@ -207,6 +207,10 @@ package goods
          {
             return false;
          }
+         if(Game.gameData != null && Game.gameData.modFreeTasksAndPurchases)
+         {
+            return true;
+         }
          var arr0:Array = this.getAllType();
          for(n in arr0)
          {

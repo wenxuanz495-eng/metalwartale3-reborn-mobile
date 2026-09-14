@@ -2,7 +2,7 @@ package body.skill
 {
    public class OneSkill
    {
-      
+
       public var index:int = 0;
       
       public var define:SkillDefine = null;
@@ -41,51 +41,74 @@ package body.skill
          this.timeUseB = false;
       }
       
-      public function useSkill() : Boolean
-      {
-         if(this.getUseB())
-         {
-            if(this.define.skillType == "time")
-            {
-               this.timeUseB = true;
-               if(this.timeUseFun is Function)
-               {
-                  this.timeUseFun();
-               }
-            }
-            else if(this.define.skillType == "number")
-            {
-               --this.nowNum;
-            }
-            return true;
-         }
-         return false;
+       public function useSkill() : Boolean
+       {
+          if(this.getUseB())
+          {
+             if(this.define.skillType == "time")
+             {
+                this.timeUseB = true;
+                if(this.timeUseFun is Function)
+                {
+                   this.timeUseFun();
+                }
+             }
+             else if(this.define.skillType == "number")
+             {
+                if(!Game.gameData.modNoSkillCooldown)
+                {
+                   --this.nowNum;
+                }
+                if(this.timeTimeFun is Function)
+                {
+                   this.timeUseB = true;
+                }
+             }
+             return true;
+          }
+          return false;
       }
-      
+
       public function closeSkill() : *
-      {
-         if(this.define.skillType == "time")
-         {
-            this.timeUseB = false;
-            if(this.levelDefine.coolingTime > 0)
-            {
-               this.cool_t = 0;
-            }
-            if(this.timeCloseFun is Function)
-            {
-               this.timeCloseFun();
-            }
-         }
-      }
+       {
+          if(this.define.skillType == "time")
+          {
+             this.timeUseB = false;
+             if(this.levelDefine.coolingTime > 0)
+             {
+                this.cool_t = 0;
+             }
+             if(this.timeCloseFun is Function)
+             {
+                this.timeCloseFun();
+             }
+          }
+          else if(this.timeTimeFun is Function)
+          {
+             this.timeUseB = false;
+          }
+       }
       
       public function getUseB() : Boolean
       {
-         if(this.define.skillType == "time")
+         if(!this.enabled)
          {
-            return this.cool_t < 0 && this.time_t >= 0.5;
+            return false;
          }
-         if(this.define.skillType == "number")
-         {
+          if(this.define.skillType == "time")
+          {
+             if(Game.gameData.modNoSkillCooldown)
+             {
+                return this.time_t >= 0.5;
+             }
+             return this.cool_t < 0 && this.time_t >= 0.5;
+         }
+          if(this.define.skillType == "number")
+          {
+             if(Game.gameData.modNoSkillCooldown)
+             {
+                return true;
+             }
             if(this.define.name == "lighting")
             {
                return this.nowNum > 0 && (this.cool_t < 0 || this.cool_t > 2);
@@ -144,8 +167,17 @@ package body.skill
       
       private function timeTimer() : *
       {
-         if(this.timeUseB)
-         {
+          if(this.timeUseB)
+          {
+             if(Game.gameData.modNoSkillCooldown)
+             {
+                this.time_t = this.levelDefine.maxTime;
+                if(this.timeTimeFun is Function)
+                {
+                   this.timeTimeFun();
+                }
+                return;
+             }
             if(this.time_t <= 0)
             {
                this.time_t = 0;
@@ -160,17 +192,21 @@ package body.skill
                }
             }
          }
-         else
-         {
-            this.jump_t = 10000;
-            if(this.time_t >= this.levelDefine.maxTime)
-            {
-               this.time_t = this.levelDefine.maxTime;
-            }
-            else
-            {
-               this.time_t += 1 / 30 / this.levelDefine.recoveryTime;
-            }
+          else
+          {
+             this.jump_t = 10000;
+             if(this.time_t >= this.levelDefine.maxTime)
+             {
+                this.time_t = this.levelDefine.maxTime;
+             }
+             else if(this.levelDefine.recoveryTime > 0)
+             {
+                this.time_t += 1 / 30 / this.levelDefine.recoveryTime;
+             }
+             else
+             {
+                this.time_t = this.levelDefine.maxTime;
+             }
             if(this.cool_t >= 0 && this.levelDefine.coolingTime > 0)
             {
                this.cool_t += 1 / 30;
@@ -186,20 +222,29 @@ package body.skill
          }
       }
       
-      public function skillTimer() : *
-      {
-         if(this.enabled)
-         {
-            if(this.define.skillType == "time")
-            {
-               this.timeTimer();
-            }
-            else if(this.define.skillType == "number")
-            {
-               this.numberTimer();
-            }
-         }
-      }
+       public function skillTimer() : *
+       {
+          if(this.enabled)
+          {
+             if(Game.gameData.modNoSkillCooldown)
+             {
+                this.cool_t = -1;
+                this.nowNum = this.levelDefine.maxNum;
+             }
+             if(this.define.skillType == "time")
+             {
+                this.timeTimer();
+             }
+             else if(this.define.skillType == "number")
+             {
+                this.numberTimer();
+                if(this.timeTimeFun is Function)
+                {
+                   this.timeTimer();
+                }
+             }
+          }
+       }
    }
 }
 

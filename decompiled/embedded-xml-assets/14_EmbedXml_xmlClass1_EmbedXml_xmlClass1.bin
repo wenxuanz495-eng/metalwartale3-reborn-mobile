@@ -4,7 +4,7 @@
 	<skill cnName="反重力装置">
 		<name>jump</name>
 		<cnName>反重力装置</cnName>
-		<skillType>number</skillType>
+		<skillType>time</skillType>
 		<maxLevel>20</maxLevel>
 		<key>W</key>
 		<keyEvent>downOpen_upClose</keyEvent>
@@ -15,7 +15,7 @@
 			<!-- 最大次数，时效型默认为1-->
 			<maxTime>3</maxTime>
 			<!-- 有效时间-->
-			<recoveryTime>0</recoveryTime>
+			<recoveryTime>1</recoveryTime>
 			<!-- 恢复1秒有效时间所需的时间-->
 			<coolingTime>0</coolingTime>
 		</default>

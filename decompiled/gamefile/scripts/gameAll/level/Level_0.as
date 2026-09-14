@@ -25,6 +25,8 @@ package gameAll.level
       private var cubePoint:Point;
       
       private var gamingUI:GamingUI;
+
+      private var tutorialSkillsUnlocked:Boolean = false;
       
       public function Level_0()
       {
@@ -34,17 +36,49 @@ package gameAll.level
       override public function startLevel() : *
       {
          super.startLevel();
-         Game.gameData.setValue_byLevel();
          this.gamingUI = Game.uiGroup.gamingUI;
-         this.gamingUI.fleshShowArms();
-         this.gamingUI.hideSkillIcon();
-         this.gamingUI.hideArmsBar();
-         Game.uiGroup.leftUI.hideBtn();
+         try
+         {
+            Game.gameData.setValue_byLevel();
+            hero.key.skillEnabled = false;
+         }
+         catch(error1:Error)
+         {
+            try{ Game.reportClientError("mobile-prologue","setValue_byLevel: " + error1,"","Level_0"); }catch(log1:*){}
+         }
+         try
+         {
+            this.gamingUI.fleshShowArms();
+            this.gamingUI.hideSkillIcon();
+            this.gamingUI.hideArmsBar();
+            Game.uiGroup.leftUI.hideBtn();
+         }
+         catch(error2:Error)
+         {
+            try{ Game.reportClientError("mobile-prologue","tutorial UI: " + error2,"","Level_0"); }catch(log2:*){}
+         }
          addOnceFun(this.ctrlTipShow,1 / 5);
-         hero.changeRocket(1);
-         hero.changePlasma(1);
-         Game.uiGroup.fleshNew();
-         Game.payController2.payCtrl("getTotalRecharged",true);
+         try
+         {
+            hero.changeRocket(1);
+            hero.changePlasma(1);
+         }
+         catch(error3:Error)
+         {
+            try{ Game.reportClientError("mobile-prologue","tutorial weapons: " + error3,"","Level_0"); }catch(log3:*){}
+         }
+         try
+         {
+            Game.uiGroup.fleshNew();
+         }
+         catch(error4:Error)
+         {
+            try{ Game.reportClientError("mobile-prologue","fleshNew: " + error4,"","Level_0"); }catch(log4:*){}
+         }
+         if(flash.system.Capabilities.playerType != "Desktop")
+         {
+            Game.payController2.payCtrl("getTotalRecharged",true);
+         }
       }
       
       private function test() : *
@@ -280,20 +314,46 @@ package gameAll.level
          lieu0.SG.fleshByArr(["snake_lv1","protonImpact_lv1","lightningBall_lv4"]);
          lieu0.SG.fleshAllPosition();
          var pp0:Point = Game.oneScene.getPositionMiddle();
-         lieu0.mot.x0 = pp0.x - 500;
-         lieu0.mot.y0 = pp0.y;
+         lieu0.mot.x0 = pp0.x - 320;
+         lieu0.mot.y0 = Game.BGHit.getMinY(lieu0.mot.x0);
+         if(lieu0.mot.y0 > 50000)
+         {
+            lieu0.mot.y0 = hero.mot.y0;
+         }
          lieu0.ai.followBody = hero;
          lieu0.moveToRight();
-         lieu0.speedUp(0.4);
+         lieu0.speedUp(0.75);
          BG.allEnemyAttackHero(lieu0);
          this.lieu = lieu0;
          this.state = "lieuShow";
+         addFun(this.keepLieutenantInTutorialRange);
+      }
+
+      private function keepLieutenantInTutorialRange() : void
+      {
+         if(this.lieu == null || hero == null)
+         {
+            return;
+         }
+         var groundY:Number = Game.BGHit.getMinY(this.lieu.mot.x0);
+         if(groundY < 50000 && this.lieu.mot.y0 < groundY - 120)
+         {
+            this.lieu.mot.y0 = groundY;
+            this.lieu.mot.vy0 = 0;
+         }
+         else if(this.lieu.mot.y0 < hero.mot.y0 - 220)
+         {
+            this.lieu.mot.y0 = hero.mot.y0;
+            this.lieu.mot.vy0 = 0;
+         }
       }
       
       private function skillShow() : *
       {
          this.gamingUI.showSkillIcon();
-         Game.gameData.playerData.setFullSkillArr([9,1,1,0,0]);
+         Game.gameData.playerData.setFullSkillArr([1,1,1,0,0]);
+         hero.key.skillEnabled = true;
+         this.tutorialSkillsUnlocked = true;
          Game.eventGroup.fleshSkill();
       }
       
@@ -380,12 +440,20 @@ package gameAll.level
          if(this.state == "lieuShow")
          {
             this.state = "lieuShowing";
+            removeFun(this.keepLieutenantInTutorialRange);
             cx0 = this.lieu.img.x - hero.img.x;
             xx0 = -70;
             if(cx0 > 0)
             {
                xx0 = 70;
             }
+            this.lieu.mot.x0 = hero.mot.x0 + xx0;
+            this.lieu.mot.y0 = Game.BGHit.getMinY(this.lieu.mot.x0);
+            if(this.lieu.mot.y0 > 50000)
+            {
+               this.lieu.mot.y0 = hero.mot.y0;
+            }
+            this.lieu.mot.vy0 = 0;
             this.lieu.ai.enabled = false;
             this.lieu.toStop();
             Game.dialogboxGroup.showDialog(this.lieu,"嘿！列兵！你的超合金战车拥有2种特殊功能！我来帮你激活它们！");
@@ -408,9 +476,26 @@ package gameAll.level
       override protected function enemyOverEvent(id0:String) : *
       {
       }
+
+      override public function closeLevel() : *
+      {
+         this.restoreTutorialSkills();
+         super.closeLevel();
+      }
+
+      private function restoreTutorialSkills() : void
+      {
+         removeFun(this.keepLieutenantInTutorialRange);
+         if(!this.tutorialSkillsUnlocked && hero != null && hero.key != null)
+         {
+            hero.key.skillEnabled = true;
+            this.tutorialSkillsUnlocked = true;
+         }
+      }
       
       override public function exitEvent() : *
       {
+         this.restoreTutorialSkills();
          var items0:ArmsItemsData = Game.gameData.subItems.addItems("elecGun_lv1");
          Game.gameData.subItems.bag_to_equip(items0.site,0);
          this.gamingUI.showArmsBar();

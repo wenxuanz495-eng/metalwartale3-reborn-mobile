@@ -42,6 +42,15 @@ package body.hero
          img0.fly.stopArms();
          img0.arms.gotoAndStop(1);
       }
+
+      override public function get shootRa() : Number
+      {
+         if(baba.mobileAimB)
+         {
+            return baba.img.shootRa;
+         }
+         return super.shootRa;
+      }
       
       override public function get hurtRectArr() : Array
       {

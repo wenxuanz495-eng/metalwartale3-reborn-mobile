@@ -134,8 +134,12 @@ package gameAll.data.challenge
          {
             td0.state = "ing";
             this.failArr[idx] = "no";
-            this.challengeFail = "no";
-            Game.gameData.taskData.reserveChallengeCard("challenge",idx);
+             this.challengeFail = "no";
+             Game.gameData.taskData.reserveChallengeCard("challenge",idx);
+             if(Game.gameData.modInstantTaskComplete)
+             {
+                td0.state = "complete";
+             }
          }
          this.syncNowTask();
       }
@@ -385,4 +389,3 @@ package gameAll.data.challenge
       }
    }
 }
-

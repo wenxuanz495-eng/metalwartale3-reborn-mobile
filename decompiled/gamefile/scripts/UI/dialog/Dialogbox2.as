@@ -11,6 +11,7 @@ package UI.dialog
    import flash.geom.Point;
    import flash.geom.Rectangle;
    import flash.text.TextField;
+   import flash.system.Capabilities;
    import gs.TweenLite;
    import gs.easing.Bounce;
    import gs.easing.Strong;
@@ -51,7 +52,7 @@ package UI.dialog
       private var textSp:MovieClip;
       
       private var text:TextField = new TextField();
-      
+
       private var str:String = "";
       
       private var type_t:int = -1;
@@ -97,6 +98,13 @@ package UI.dialog
       public function show(con:DisplayObjectContainer, text0:String, _x0:int, _y0:int, _mx:Number = 0, _my:Number = 0, _followBody:* = null, _time:Number = 5, _linePoint:Point = null, textOrMc:Boolean = false) : *
       {
          var lenx:Number = NaN;
+         if(!textOrMc && Capabilities.playerType != "Desktop")
+         {
+            this.hideText();
+            this.show_t = -1;
+            this.visible = false;
+            return;
+         }
          enabled = true;
          this.visible = true;
          TweenLite.killTweensOf(this.ct);
@@ -310,7 +318,7 @@ package UI.dialog
          }
          this.text.visible = true;
       }
-      
+
       private function hideText() : *
       {
          this.text.visible = false;

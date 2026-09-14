@@ -146,8 +146,12 @@ package gameAll.data.collect
          var td0:CollectTaskDefine = this.getTrueTask_byIndex(nowIndex);
          if(td0 != null && td0.state == "no")
          {
-            td0.state = "ing";
-            Game.gameData.taskData.reserveChallengeCard("collect",int(nowIndex));
+             td0.state = "ing";
+             Game.gameData.taskData.reserveChallengeCard("collect",int(nowIndex));
+             if(Game.gameData.modInstantTaskComplete)
+             {
+                td0.state = "complete";
+             }
          }
          this.fleshAllNowNum();
       }

@@ -109,10 +109,6 @@ package UI.gameover
             });
             this.cardUI.flipStart_init(levelState0);
          }
-         else if(isoneB)
-         {
-            Game.eventGroup.toTutorial();
-         }
       }
       
       public function failShow(levelState0:String = "normal") : *

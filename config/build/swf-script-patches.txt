@@ -11,6 +11,7 @@ UI\union\UnionBuild_Tech.as
 UI\union\UnionBattle.as
 gameAll\data\GiftData.as
 gameAll\level\Levels.as
+gameAll\level\Level_0.as
 items\ItemsController.as
 UI\main\PayActivityUI.as
 UI\main\InfoUI.as
@@ -28,6 +29,7 @@ UI\gameover\FlipCardBar.as
 sound\SoundGroup.as
 UI\AllBack.as
 UI\UIGroup.as
+gameAll\api\save\LocalSave.as
 UI\gameover\FlipCardUI.as
 UI\_new\main\_MainUI.as
 gameAll\api\save\SaveAPI.as
@@ -39,6 +41,7 @@ effect\EffectSMC.as
 enemy\_die\DieDelay.as
 enemy\_die\DieDelayGroup.as
 Game.as
+data\Copyright.as
 bodyGroup\BodyGroup.as
 body\lieutenant\LieutenantBody.as
 body\lieutenant\Lieutenant_AI.as
@@ -50,6 +53,18 @@ gameAll\define\AdditionalDefine.as
 gameAll\data\GoodsItemsDataGroup.as
 gameAll\data\level\NewLevelData.as
 gameAll\data\GameData.as
+gameAll\data\collect\WeekTaskData.as
+gameAll\data\TaskData.as
+gameAll\data\challenge\ChallengeTaskData.as
+gameAll\data\collect\CollectTaskData.as
+gameAll\PayController.as
+goods\GoodsDefine.as
+UI\gaming\SkillIconBox.as
+UI\gaming\GamingUI.as
+UI\dialog\Dialogbox.as
+UI\dialog\Dialogbox2.as
+body\skill\SkillGroup.as
+UI\exchange\DouwaUI.as
 gameAll\data\GoodsItemsData.as
 gameAll\data\ArmsItemsData.as
 body\define\OneArmsDefine.as
@@ -70,7 +85,13 @@ UI\arena\ArenaUI.as
 UI\arena\NewArenaUI.as
 gameAll\level\ArenaLevel.as
 UI\shop\TopDialogBox.as
+UI\shop\MustTopDialogBox.as
+UI\shop\OneExchangeUI.as
+UI\gift\LeveLGiftUI.as
+UI\gift\GrowGiftUI.as
+UI\gift\PayGiftUI.as
 UI\server\ServerUI.as
+UI\level\LevelChooseUI.as
 gameAll\define\drop\oneDropDefine.as
 gameAll\define\drop\DropDefine.as
 gameAll\data\SpecialExtraData.as
@@ -79,6 +100,7 @@ UI\extra\ExtraUI.as
 gameAll\data\CarItemsData.as
 gameAll\data\CarItemsDataGroup.as
 body\hero\HeroCarBody.as
+body\hero\NewHeroCarAAHD.as
 UI\change\CtrlArmsList.as
 UI\change\CarItemsTip.as
 UI\_new\icon\NormalAllIcon.as
@@ -87,3 +109,7 @@ UI\_new\change\_ChangeUI.as
 UI\_new\change\_BagUI.as
 UI\change\OneKeySellUI.as
 UI\page\PageBox.as
+body\skill\OneSkill.as
+UI\research\PlayerTrainUI.as
+gameAll\data\PlayerData.as
+gameAll\data\GameData.as

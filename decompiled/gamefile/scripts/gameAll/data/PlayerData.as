@@ -20,6 +20,10 @@ package gameAll.data
       public var allAdd:TrainAddData = new TrainAddData();
       
       public var skillArr:Array = [];
+
+      public var jumpSkillInitializedB:Boolean = true;
+
+      public var jumpSkillGrantLevelFixedB:Boolean = true;
       
       public function PlayerData()
       {
@@ -58,6 +62,9 @@ package gameAll.data
          var pro0:String = null;
          var d_arr0:Array = null;
          var str0:String = null;
+         var skill0:SkillDefine = null;
+         var resetJumpSkillB:Boolean = !obj.hasOwnProperty("jumpSkillInitializedB") || !obj.jumpSkillInitializedB;
+         var fixJumpGrantLevelB:Boolean = !obj.hasOwnProperty("jumpSkillGrantLevelFixedB") || !obj.jumpSkillGrantLevelFixedB;
          var pro_arr:Array = ["allAdd","lifeAdd","attackAdd","subAdd","defenceAdd"];
          for(n in pro_arr)
          {
@@ -70,14 +77,22 @@ package gameAll.data
             d_arr0 = Game.defineGroup.skill.arr;
             for(n in d_arr0)
             {
+               skill0 = d_arr0[n];
                str0 = obj.skillArr[n];
                if(Boolean(str0))
                {
-                  this.skillArr.push(str0);
+                  if(skill0.name == "jump" && (resetJumpSkillB || int(TextWay.getText(str0)) < 1))
+                  {
+                     this.skillArr.push(TextWay.toCode("1"));
+                  }
+                  else
+                  {
+                     this.skillArr.push(str0);
+                  }
                }
                else
                {
-                  this.skillArr.push(TextWay.toCode("0"));
+                  this.skillArr.push(TextWay.toCode(skill0.name == "jump" ? "1" : "0"));
                }
             }
          }
@@ -86,21 +101,28 @@ package gameAll.data
             this.initSkillArr();
             if(Boolean(obj.hasOwnProperty("jumpAdd")))
             {
-               this.setSkillLevel("jump",obj.jumpAdd.level);
                this.setSkillLevel("rocket",obj.rocketAdd.level);
                this.setSkillLevel("plasma",obj.plasmaAdd.level);
             }
          }
+         if(fixJumpGrantLevelB && this.getSkillLevel("jump") == 9)
+         {
+            this.setSkillLevel("jump",1);
+         }
+         this.jumpSkillInitializedB = true;
+         this.jumpSkillGrantLevelFixedB = true;
       }
       
       private function initSkillArr() : *
       {
          var n:* = undefined;
+         var skill0:SkillDefine = null;
          var d_arr0:Array = Game.defineGroup.skill.arr;
          this.skillArr = [];
          for(n in d_arr0)
          {
-            this.skillArr.push(TextWay.toCode("0"));
+            skill0 = d_arr0[n];
+            this.skillArr.push(TextWay.toCode(skill0.name == "jump" ? "1" : "0"));
          }
       }
       

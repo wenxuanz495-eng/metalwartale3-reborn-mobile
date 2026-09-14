@@ -6,11 +6,17 @@ package UI.research
    import body.skill.OneLevelSkillDefine;
    import body.skill.SkillDefine;
    import flash.display.MovieClip;
+   import flash.display.DisplayObject;
+   import flash.display.DisplayObjectContainer;
+   import flash.display.Shape;
    import flash.display.SimpleButton;
    import flash.display.Sprite;
    import flash.events.MouseEvent;
+   import flash.events.TimerEvent;
    import flash.geom.Point;
+   import flash.geom.Rectangle;
    import flash.text.TextField;
+   import flash.utils.Timer;
    import gameAll.data.GameData;
    import gameAll.data.GoodsItemsDataGroup;
    import gameAll.data.TrainAddData;
@@ -91,6 +97,12 @@ package UI.research
       private var pendingSkillGCost:Number = 0;
 
       private var pendingSkillMCost:Number = 0;
+
+      private var skillLongPressTimer:Timer = new Timer(550,1);
+
+      private var skillLongPressTarget:* = null;
+
+      private var skillLongPressLabels:Object = {};
       
       public function PlayerTrainUI()
       {
@@ -98,12 +110,105 @@ package UI.research
          this.titleArr2 = ["主武器攻击","副武器攻击","耐久","防御","全属性"];
          this.trainNameArr = ["attack","sub","life","defence","all"];
          this.labelCtrl = new LabelCtrl();
-         super();
-         with(this.label_mc)
-         {
-            labelCtrl.inData([attack_btn,sub_btn,life_btn,defence_btn,all_btn,rocket_btn,jump_btn,plasma_btn,lighting_btn,change_btn],light_sp);
-         }
-         this.labelCtrl.addEventListener(ClickEvent.ON_CLICK,this.labelClick);
+          super();
+          // 反重力装置(jump)升级入口修复:
+          // 时间轴资源中 jump 技能对应的可视技能图标按钮是 label_mc 内位于 (0,0) 的
+          // 未命名六边形按钮(左列第一个槽位);触发按键 jump_btn(48x17 小方块)位于屏幕外 (-243)。
+          // 做法:不移动、不改名任何按钮,只在 labelCtrl 的按钮数组里把 jump 位置的引用
+          // 从屏幕外的 jump_btn 替换为 (0,0) 的可视技能图标按钮,并显式传入 label 数组,
+          // 使技能图标本身可点击打开反重力装置升级界面(点击后高亮也会正确落在该图标上)。
+          var jumpIcon0:* = null;
+          var btnCount:int = this.label_mc.numChildren;
+          var i0:int = 0;
+          while(i0 < btnCount)
+          {
+             var b0:* = this.label_mc.getChildAt(i0);
+             if(b0 is SimpleButton && b0.x == 0 && b0.y == 0)
+             {
+                jumpIcon0 = b0;
+                break;
+             }
+             i0++;
+          }
+          // 升级按钮的原版规格是84x76，内部图块约为68x62。把战斗HUD中的jump帧
+          // 按这个规格拉伸并居中，再用内六边形裁切；外框仍由原版按钮时间轴绘制。
+          if(jumpIcon0 != null)
+          {
+             try
+             {
+                var skillIcon0:* = Game.swfLoaderManager.getResource("ui","UI.gaming.SkillIcon");
+                if(skillIcon0 != null && skillIcon0.icon != null)
+                {
+                   var iconView0:MovieClip = skillIcon0.icon as MovieClip;
+                   var iconHolder0:Sprite = new Sprite();
+                   iconView0.gotoAndStop("jump");
+                   iconHolder0.addChild(iconView0);
+                   var rawBounds0:Rectangle = iconView0.getBounds(iconHolder0);
+                   iconView0.scaleX *= 68 / rawBounds0.width;
+                   iconView0.scaleY *= 62 / rawBounds0.height;
+                   var fittedBounds0:Rectangle = iconView0.getBounds(iconHolder0);
+                   iconView0.x += 8 - fittedBounds0.x;
+                   iconView0.y += 7 - fittedBounds0.y;
+                   iconHolder0.x = jumpIcon0.x;
+                   iconHolder0.y = jumpIcon0.y;
+                   iconHolder0.mouseEnabled = false;
+                   iconHolder0.mouseChildren = false;
+                   this.label_mc.addChild(iconHolder0);
+
+                   var iconMask0:Shape = new Shape();
+                   iconMask0.graphics.beginFill(16777215,1);
+                   iconMask0.graphics.moveTo(24,7);
+                   iconMask0.graphics.lineTo(60,7);
+                   iconMask0.graphics.lineTo(78,38);
+                   iconMask0.graphics.lineTo(60,69);
+                   iconMask0.graphics.lineTo(24,69);
+                   iconMask0.graphics.lineTo(6,38);
+                   iconMask0.graphics.lineTo(24,7);
+                   iconMask0.graphics.endFill();
+                   iconMask0.x = jumpIcon0.x;
+                   iconMask0.y = jumpIcon0.y;
+                   this.label_mc.addChild(iconMask0);
+                   iconHolder0.mask = iconMask0;
+                }
+             }
+             catch(error:Error)
+             {
+             }
+          }
+          var btnArr:Array = [this.label_mc.attack_btn,this.label_mc.sub_btn,this.label_mc.life_btn,this.label_mc.defence_btn,this.label_mc.all_btn,this.label_mc.rocket_btn,this.label_mc.jump_btn,this.label_mc.plasma_btn,this.label_mc.lighting_btn,this.label_mc.change_btn];
+          var labelArr:Array = ["attack","sub","life","defence","all","rocket","jump","plasma","lighting","change"];
+          if(jumpIcon0 != null)
+          {
+             btnArr[6] = jumpIcon0;
+          }
+          // PlayerTrainUI450.swf 把整组技能图片烘焙在一个大 Shape 中，其中反重力图片
+          // 位于 label_mc 上方约 260 像素。窗口被全屏填充后，这块越界内容会泄漏到界面
+          // 左上方。给 label_mc 增加只覆盖正常按钮区的遮罩，保留槽位内的新图标，同时
+          // 裁掉资源中原本越界的反重力图片和测试按钮。
+          var labelMask0:Shape = new Shape();
+          labelMask0.graphics.beginFill(16777215,1);
+          labelMask0.graphics.drawRect(-40,-40,950,400);
+          labelMask0.graphics.endFill();
+          labelMask0.x = this.label_mc.x;
+          labelMask0.y = this.label_mc.y;
+          this.addChild(labelMask0);
+          this.label_mc.mask = labelMask0;
+          this.labelCtrl.inData(btnArr,this.label_mc.light_sp,labelArr);
+          this.fixMobileTrainButtonLabels(this.label_mc);
+          this.labelCtrl.addEventListener(ClickEvent.ON_CLICK,this.labelClick);
+          this.skillLongPressTimer.addEventListener(TimerEvent.TIMER_COMPLETE,this.showSkillLongPressTip);
+          var skillIndex0:int = 5;
+          while(skillIndex0 < btnArr.length)
+          {
+             if(btnArr[skillIndex0] != null)
+             {
+                this.skillLongPressLabels[btnArr[skillIndex0].name] = labelArr[skillIndex0];
+                btnArr[skillIndex0].addEventListener(MouseEvent.MOUSE_DOWN,this.startSkillLongPress);
+                btnArr[skillIndex0].addEventListener(MouseEvent.MOUSE_UP,this.stopSkillLongPress);
+                btnArr[skillIndex0].addEventListener(MouseEvent.MOUSE_OUT,this.stopSkillLongPress);
+             }
+             skillIndex0++;
+          }
          this.label_mc.mouseEnabled = false;
          this.quickUpgrade100_btn.visible = false;
          this.quickUpgrade200_btn.visible = false;
@@ -125,11 +230,11 @@ package UI.research
          this.label_mc.change_btn.addEventListener(MouseEvent.MOUSE_OUT,this.btnOut);
       }
       
-      public function init() : *
-      {
-         this.GD = Game.gameData;
-         this.materialsItems = this.GD.materialsItems;
-      }
+       public function init() : *
+       {
+          this.GD = Game.gameData;
+          this.materialsItems = this.GD.materialsItems;
+       }
       
       public function gotoShop(e:*) : *
       {
@@ -145,6 +250,84 @@ package UI.research
       public function labelClick(event:ClickEvent) : *
       {
          this.trainOne(this.labelCtrl.nowLabel);
+      }
+
+      private function startSkillLongPress(event:MouseEvent) : void
+      {
+         this.skillLongPressTarget = event.currentTarget;
+         this.skillLongPressTimer.reset();
+         this.skillLongPressTimer.start();
+      }
+
+      private function stopSkillLongPress(event:MouseEvent) : void
+      {
+         this.skillLongPressTimer.reset();
+         this.skillLongPressTarget = null;
+         Game.uiGroup.infoTip.visible = false;
+      }
+
+      private function showSkillLongPressTip(event:TimerEvent) : void
+      {
+         if(this.skillLongPressTarget == null)
+         {
+            return;
+         }
+         var label0:String = String(this.skillLongPressLabels[this.skillLongPressTarget.name]);
+         var define0:SkillDefine = Game.defineGroup.skill.getDefine(label0);
+         if(define0 == null)
+         {
+            return;
+         }
+         Game.uiGroup.infoTip.showText(this.getSkillIntroduction(define0),200);
+         var point0:Point = this.skillLongPressTarget.localToGlobal(new Point(this.skillLongPressTarget.width + 8,0));
+         point0 = Game.uiGroup.infoTip.parent.globalToLocal(point0);
+         Game.uiGroup.infoTip.x = point0.x;
+         Game.uiGroup.infoTip.y = point0.y;
+         Game.uiGroup.infoTip.visible = true;
+      }
+
+      private function getSkillIntroduction(define0:SkillDefine) : String
+      {
+         if(define0.name == "jump") return "反重力装置：持续按住可使战车向上推进，用于空中移动和调整高度。";
+         if(define0.name == "rocket") return "火箭喷射器：瞬间提升战车推进速度，快速突进或脱离危险。";
+         if(define0.name == "plasma") return "等离子护盾：让你处于无敌状态，免疫大部分伤害。";
+         if(define0.name == "lighting") return "由处于低轨道的卫星控制云层，产生瞬时的闪电攻击地面上的所有目标。闪电伤害为你战斗力的一定倍数。";
+         if(define0.name == "change") return "由小型原能魔方驱动，可以让战车瞬间变成强大的机甲战士，并获得特殊的攻击能力。机甲战士的攻击力是你战斗力的一定倍数。";
+         return define0.cnName;
+      }
+
+      private function fixMobileTrainButtonLabels(container0:DisplayObjectContainer) : void
+      {
+         var i0:int = 0;
+         var child0:DisplayObject = null;
+         var text0:TextField = null;
+         var compact0:String = null;
+         while(i0 < container0.numChildren)
+         {
+            child0 = container0.getChildAt(i0);
+            text0 = child0 as TextField;
+            if(text0 != null)
+            {
+               compact0 = text0.text.replace(/\s/g,"");
+               if(compact0 == "主动" || compact0 == "主动技能")
+               {
+                  text0.multiline = true;
+                  text0.text = "主动\n技能";
+                  text0.height = Math.max(text0.height,70);
+               }
+               else if(compact0 == "人物" || compact0 == "人物训练")
+               {
+                  text0.multiline = true;
+                  text0.text = "人物\n训练";
+                  text0.height = Math.max(text0.height,70);
+               }
+            }
+            else if(child0 is DisplayObjectContainer)
+            {
+               this.fixMobileTrainButtonLabels(DisplayObjectContainer(child0));
+            }
+            i0++;
+         }
       }
       
       public function btnClick(event:MouseEvent) : *
@@ -185,8 +368,14 @@ package UI.research
       private function getTrainInputText(add0:TrainAddData) : String
       {
          var currency0:String = add0.type == "all" ? "M币" : "G币";
-         var cost0:Number = add0.level < add0.maxLevel ? this.getTrainBatchCost(add0.level,1,add0.type) : 0;
-         return "输入" + add0.cnName + "要提升的等级数：\n当前 " + add0.level + " 级，最高 " + add0.maxLevel + " 级。\n提升 1 级需要 " + cost0 + " " + currency0 + "。";
+         var max0:int = this.getTrainingMaxLevel(add0);
+         var cost0:Number = add0.level < max0 ? this.getTrainBatchCost(add0.level,1,add0.type) : 0;
+         return "输入" + add0.cnName + "要提升的等级数：\n当前 " + add0.level + " 级，最高 " + max0 + " 级。\n提升 1 级需要 " + cost0 + " " + currency0 + "。";
+      }
+
+      private function getTrainingMaxLevel(add0:TrainAddData) : int
+      {
+         return add0.type == "all" ? add0.maxLevel : 149;
       }
 
       private function getSkillInputText(skill0:SkillDefine) : String
@@ -213,7 +402,7 @@ package UI.research
             return;
          }
          var num0:int = int(Game.uiGroup.checkTip.input_txt.text);
-         var remain0:int = add0.maxLevel - add0.level;
+         var remain0:int = this.getTrainingMaxLevel(add0) - add0.level;
          if(num0 < 1)
          {
             Game.uiGroup.checkTip.showCheck2("请输入大于 0 的等级数。",2);
@@ -225,7 +414,7 @@ package UI.research
             return;
          }
          var needPlayerLevel0:int = Game.gameDefine.getTrainLevelNum(add0.level + num0 - 1,add0.type);
-         if(this.GD.level + 1 < needPlayerLevel0)
+         if(!this.GD.modFreeSkillUpgrade && this.GD.level + 1 < needPlayerLevel0)
          {
             Game.uiGroup.checkTip.showCheck2("提升到目标等级需要玩家达到 " + needPlayerLevel0 + " 级。",2);
             return;
@@ -235,6 +424,10 @@ package UI.research
          this.pendingTrainData = add0;
          this.pendingTrainCurrency = add0.type == "all" ? "M币" : "G币";
          this.pendingAllTrainCost = this.getTrainBatchCost(add0.level,num0,add0.type);
+         if(this.GD.modFreeSkillUpgrade)
+         {
+            this.pendingAllTrainCost = 0;
+         }
          Game.uiGroup.checkTip.showCheck2(add0.cnName + "将从 " + add0.level + " 级提升到 " + (add0.level + num0) + " 级。\n目标要求玩家达到 " + needPlayerLevel0 + " 级。\n共需要 " + this.pendingAllTrainCost + " " + this.pendingTrainCurrency + "，确定升级吗？",1,this.confirmAllTrain);
       }
 
@@ -279,17 +472,21 @@ package UI.research
             return;
          }
          this.pendingAllTrainCost = this.getTrainBatchCost(add0.level,this.pendingAllTrainNum,add0.type);
-         if(add0.type == "all" && this.pendingAllTrainCost > this.GD.MCoin)
+         if(!this.GD.modFreeSkillUpgrade && add0.type == "all" && this.pendingAllTrainCost > this.GD.MCoin)
          {
             Game.uiGroup.checkTip.showCheck2("M币不足，需要 " + this.pendingAllTrainCost + " M币。",2);
             return;
          }
-         if(add0.type != "all" && this.pendingAllTrainCost > this.GD.GCoin)
+         if(!this.GD.modFreeSkillUpgrade && add0.type != "all" && this.pendingAllTrainCost > this.GD.GCoin)
          {
             Game.uiGroup.checkTip.showCheck2("G币不足，需要 " + this.pendingAllTrainCost + " G币。",2);
             return;
          }
-         if(add0.type == "all")
+         if(this.GD.modFreeSkillUpgrade)
+         {
+            this.completeAllTrain();
+         }
+         else if(add0.type == "all")
          {
             Game.payController.decMCoin(this.pendingAllTrainCost,this.completeAllTrain,this.affter_m_buyCheck2);
          }
@@ -372,27 +569,29 @@ package UI.research
             "MCoin":0,
             "mustLevel":1
          };
+         if(this.GD.modFreeSkillUpgrade)
+         {
+            return result0;
+         }
          var i:int = startLevel0;
-         var pay0:OneLevelSkillDefine = null;
          var target0:OneLevelSkillDefine = null;
          while(i < startLevel0 + num0)
          {
-            pay0 = skill0.getLevel(i);
             target0 = skill0.getLevel(i + 1);
-            if(pay0 != null)
+            if(target0 != null)
             {
-               if(pay0.mustMcoin > 0)
+               if(target0.mustMcoin > 0)
                {
-                  result0.MCoin += pay0.mustMcoin;
+                  result0.MCoin += target0.mustMcoin;
                }
                else
                {
-                  result0.GCoin += pay0.mustGcoin;
+                  result0.GCoin += target0.mustGcoin;
                }
-            }
-            if(target0 != null && target0.mustLevel > result0.mustLevel)
-            {
-               result0.mustLevel = target0.mustLevel;
+               if(target0.mustLevel > result0.mustLevel)
+               {
+                  result0.mustLevel = target0.mustLevel;
+               }
             }
             i++;
          }
@@ -415,17 +614,25 @@ package UI.research
          var cost0:Object = this.getSkillBatchCost(skill0,nowLevel0,this.pendingSkillNum);
          this.pendingSkillGCost = Number(cost0.GCoin);
          this.pendingSkillMCost = Number(cost0.MCoin);
-         if(this.GD.level + 1 < int(cost0.mustLevel))
+         // 研发无视条件必须覆盖最终确认流程。开关可能是在当前界面打开后才写入存档，
+         // 因此不能只依赖 prepareSkillBatch() 计算出的费用；确认时再次强制清零。
+         if(this.GD.modFreeSkillUpgrade)
+         {
+            this.pendingSkillGCost = 0;
+            this.pendingSkillMCost = 0;
+            cost0.mustLevel = 1;
+         }
+         if(!this.GD.modFreeSkillUpgrade && this.GD.level + 1 < int(cost0.mustLevel))
          {
             Game.uiGroup.checkTip.showCheck2("玩家等级不足，需要达到 " + cost0.mustLevel + " 级。",2);
             return;
          }
-         if(this.pendingSkillGCost > this.GD.GCoin)
+         if(!this.GD.modFreeSkillUpgrade && this.pendingSkillGCost > this.GD.GCoin)
          {
             Game.uiGroup.checkTip.showCheck2("G币不足，需要 " + this.pendingSkillGCost + " G币。",2);
             return;
          }
-         if(this.pendingSkillMCost > this.GD.MCoin)
+         if(!this.GD.modFreeSkillUpgrade && this.pendingSkillMCost > this.GD.MCoin)
          {
             Game.uiGroup.checkTip.showCheck2("M币不足，需要 " + this.pendingSkillMCost + " M币。",2);
             return;
@@ -623,6 +830,10 @@ package UI.research
             m_d0 = n_d0;
          }
          var mustLevel:int = m_d0.mustLevel;
+         if(this.GD.modCraftFree)
+         {
+            mustLevel = 1;
+         }
          this.mustLevel_txt.text = mustLevel + "";
          mustLevelB = this.GD.level + 1 >= mustLevel;
          this.gotoShop_btn.visible = false;
@@ -630,7 +841,7 @@ package UI.research
          if(m_d0.mustMcoin > 0)
          {
             this.changeGorM(false);
-            coin0 = m_d0.mustMcoin;
+            coin0 = this.GD.modCraftFree ? 0 : m_d0.mustMcoin;
             if(coin0 > this.GD.MCoin)
             {
                coinB = false;
@@ -641,7 +852,7 @@ package UI.research
          else
          {
             this.changeGorM();
-            coin0 = m_d0.mustGcoin;
+            coin0 = this.GD.modCraftFree ? 0 : m_d0.mustGcoin;
             if(coin0 > this.GD.GCoin)
             {
                coinB = false;
@@ -703,7 +914,8 @@ package UI.research
          this.name_txt.text = nameStr0 + "加成" + add0.getPer() + "%";
          this.name_txt2.text = nameStr0 + "加成" + add0.getNextPer() + "%";
          var maxLevelB:Boolean = true;
-         if(add0.level >= add0.maxLevel)
+         var trainMaxLevel0:int = this.getTrainingMaxLevel(add0);
+         if(add0.level >= trainMaxLevel0)
          {
             maxLevelB = false;
             this.name_txt2.text = "已升至最高等级";
@@ -714,8 +926,12 @@ package UI.research
          }
          var mustLevelB:Boolean = true;
          var mustLevel:int = add0.mustLevel;
+         if(this.GD.modFreeSkillUpgrade)
+         {
+            mustLevel = 1;
+         }
          this.mustLevel_txt.text = mustLevel + "";
-         if(this.GD.level + 1 >= mustLevel)
+         if(this.GD.modFreeSkillUpgrade || this.GD.level + 1 >= mustLevel)
          {
             this.condition_icon3.gotoAndStop(1);
          }
@@ -727,6 +943,13 @@ package UI.research
          this.gotoShop_btn.visible = false;
          this.pay_btn.visible = false;
          var coinB:Boolean = true;
+         if(this.GD.modFreeSkillUpgrade)
+         {
+            coin0 = 0;
+            coinB = true;
+         }
+         else
+         {
          if(add0.MCoin > 0)
          {
             this.changeGorM(false);
@@ -748,6 +971,7 @@ package UI.research
                this.gotoShop_btn.visible = true;
             }
             this.nowGCoin_txt.text = "当前G币：" + this.GD.GCoin;
+         }
          }
          if(coin0 <= 0)
          {

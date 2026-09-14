@@ -76,6 +76,7 @@ package UI.gaming
       {
          var loader0:Loader = new Loader();
          loader0.name = role0;
+         loader0.visible = role0 == "normal";
          loader0.mouseEnabled = false;
          loader0.contentLoaderInfo.addEventListener(Event.COMPLETE,this.settingsImageComplete);
          loader0.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR,this.settingsImageError);
@@ -86,6 +87,7 @@ package UI.gaming
       private function settingsImageComplete(e:Event) : *
       {
          var loader0:Loader = e.target.loader as Loader;
+         loader0.content.scale9Grid = new Rectangle(8,8,98,20);
          loader0.content.width = this.settingsButtonWidth;
          loader0.content.height = 36;
          loader0.visible = loader0.name == "normal";

@@ -18,7 +18,7 @@ package UI.shop
          super();
       }
       
-      public function showMustCheck(mustDefine:NormalMustDefine, str0:String, yesFun0:Function = null, noFun0:Function = null, mustText:String = "") : *
+      public function showMustCheck(mustDefine:NormalMustDefine, str0:String, yesFun0:Function = null, noFun0:Function = null, mustText:String = "", allowPurchaseModifier:Boolean = true) : *
       {
          this.nowMCoin = Game.gameData.MCoin;
          this.nowGCoin = Game.gameData.GCoin;
@@ -31,7 +31,7 @@ package UI.shop
          var str_level:String = "";
          var nostr1:String = "";
          var nostr2:String = "";
-         if(mustDefine.mustLevel > 0 && mustDefine.mustLevel > this.nowLevel)
+         if(mustDefine.mustLevel > 0 && mustDefine.mustLevel > this.nowLevel && (!Game.gameData.modPurchaseIgnoreConditions || !allowPurchaseModifier))
          {
             str_level = "  " + mustText + "人物等级：" + "<font color=\'#FFFF00\'>" + (mustDefine.mustLevel + 1) + "</font><font color=\'#FF0000\'>（不足)</font>" + "  ";
             btnState0 = 3;
@@ -41,7 +41,7 @@ package UI.shop
             str_level += "  " + mustText + "军衔：" + "<font color=\'#FFFF00\'>" + Game.gameDefine.getRankName(mustDefine.mustRankLevel) + "</font><font color=\'#FF0000\'>（不足)</font>" + "  ";
             btnState0 = 3;
          }
-         if(mustDefine.GCoin > 0)
+         if(mustDefine.GCoin > 0 && (!Game.gameData.modPurchaseIgnoreConditions || !allowPurchaseModifier))
          {
             if(this.nowGCoin < mustDefine.GCoin)
             {
@@ -51,7 +51,7 @@ package UI.shop
             }
             str1 = "  " + mustText + "G币：" + "<font color=\'#FFFF00\'>" + mustDefine.GCoin + "</font>" + nostr1 + "  ";
          }
-         if(mustDefine.MCoin > 0)
+         if(mustDefine.MCoin > 0 && (!Game.gameData.modPurchaseIgnoreConditions || !allowPurchaseModifier))
          {
             if(this.nowMCoin < mustDefine.MCoin)
             {

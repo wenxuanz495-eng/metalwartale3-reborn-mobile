@@ -25,13 +25,10 @@ package UI.gaming
          {
             d0 = arr0[n];
             i0 = new SkillIcon();
-            if(d0.name != "jump")
-            {
-               i0.init(d0);
-               i0.x = n * 67;
-               i0.y = 0;
-               addChild(i0);
-            }
+            i0.init(d0);
+            i0.x = n * 67;
+            i0.y = 0;
+            addChild(i0);
             this.arr.push(i0);
          }
       }

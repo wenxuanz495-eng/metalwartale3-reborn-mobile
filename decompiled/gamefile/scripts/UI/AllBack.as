@@ -39,6 +39,16 @@ package UI
 
       private var settingsPanel:Sprite;
 
+      private var settingsTabs:Sprite;
+
+      private var settingsTabPage:int = 0;
+
+      private var settingsTabDragStartX:Number = 0;
+
+      private var settingsTabStartX:Number = 0;
+
+      private var settingsTabDragging:Boolean = false;
+
       private var sliderBars:Array = [];
 
       private var sliderKnobs:Array = [];
@@ -60,6 +70,14 @@ package UI
       private var keyPage:Sprite;
 
       private var playlistPage:Sprite;
+
+      private var touchPage:Sprite;
+
+      private var touchOptionButtons:Array = [];
+
+      private var mobileMoveMode:String = "halfScreen";
+
+      private var mobileAttackMode:String = "stickFire";
 
       private var recommendedBGMCheck:Sprite;
 
@@ -145,9 +163,9 @@ package UI
 
       private var keyButtons:Array = [];
 
-      private var keyActions:Array = ["moveLeft","moveRight","jump","interact","weapon0","weapon1","weapon2","weapon3","weapon4","weapon5","weapon6","weapon7","rocket","plasma","change","lighting","menu"];
+      private var keyActions:Array = ["moveLeft","moveRight","jump","interact","weapon0","weapon1","weapon2","weapon3","weapon4","weapon5","weapon6","weapon7","rocket","plasma","change","lighting","jumpSkill","menu"];
 
-      private var keyLabels:Array = ["左移","右移","推进/跳跃","下降/传送","武器 1","武器 2","武器 3","武器 4","武器 5","武器 6","武器 7","武器 8","火箭推进器","等离子护盾","机甲","卫星闪电炮","菜单/设置"];
+      private var keyLabels:Array = ["左移","右移","推进/跳跃","下降/传送","武器 1","武器 2","武器 3","武器 4","武器 5","武器 6","武器 7","武器 8","火箭推进器","等离子护盾","机甲","卫星闪电炮","反重力装置","菜单/设置"];
 
       private var capturingKey:int = -1;
       
@@ -165,8 +183,8 @@ package UI
          this.box.y = 400;
          removeChild(this.carBack_mc);
          this.return_btn.addEventListener(MouseEvent.CLICK,this.returnClick);
-         this.volume_off_btn.visible = false;
-         this.volume_on_btn.visible = false;
+         this.volume_off_btn.addEventListener(MouseEvent.CLICK,this.volumeClick);
+         this.volume_on_btn.addEventListener(MouseEvent.CLICK,this.volumeClick);
          this.settings_btn = this.createSettingsButton();
          this.settings_btn.x = this.volume_on_btn.x;
          this.settings_btn.y = this.volume_on_btn.y;
@@ -254,15 +272,38 @@ package UI
 
       public function openSoundSettings() : *
       {
+         if(Game.gameState == "gaming" && Game.uiGroup != null && Game.uiGroup.gamingUI != null)
+         {
+            Game.uiGroup.gamingUI.leaveMobileBattleMode();
+         }
          this.playlistOverlay.visible = false;
          this.settingsPanel.visible = true;
          Game.gameSprite.addChild(this.settingsPanel);
+      }
+
+      public function mobileVolumeClick(stageX0:Number, stageY0:Number) : Boolean
+      {
+         if(this.settings_btn == null || this.settings_btn.stage == null)
+         {
+            return false;
+         }
+         var bounds0:flash.geom.Rectangle = this.settings_btn.getBounds(this.settings_btn.stage);
+         var originalBounds0:flash.geom.Rectangle = this.volume_on_btn.getBounds(this.settings_btn.stage);
+         bounds0 = bounds0.union(originalBounds0);
+         bounds0.inflate(10,10);
+         if(!bounds0.contains(stageX0,stageY0))
+         {
+            return false;
+         }
+         this.openSoundSettings();
+         return true;
       }
       
       public function fleshVolumeBtn() : *
       {
          this.volume_off_btn.visible = false;
          this.volume_on_btn.visible = false;
+         this.settings_btn.visible = true;
       }
 
       private function createSettingsButton() : Sprite
@@ -271,21 +312,25 @@ package UI
          var icon:Shape = new Shape();
          var i:int = 0;
          var angle:Number = 0;
-         button.graphics.beginFill(263177,1);
-         button.graphics.lineStyle(1,65535,1);
-         button.graphics.drawRect(0,0,22,22);
+         button.graphics.beginFill(0,0);
+         button.graphics.drawRect(-4,-4,30,30);
          button.graphics.endFill();
-         icon.graphics.lineStyle(3,65535,1);
+         icon.graphics.beginFill(263177,1);
+         icon.graphics.lineStyle(1,65535,1);
+         icon.graphics.drawRect(0,0,22,22);
+         icon.graphics.endFill();
+         icon.graphics.lineStyle(2,65535,1);
          for(i = 0; i < 8; i++)
          {
             angle = Math.PI * i / 4;
-            icon.graphics.moveTo(11 + Math.cos(angle) * 6,11 + Math.sin(angle) * 6);
-            icon.graphics.lineTo(11 + Math.cos(angle) * 9,11 + Math.sin(angle) * 9);
+            icon.graphics.moveTo(11 + Math.cos(angle) * 5,11 + Math.sin(angle) * 5);
+            icon.graphics.lineTo(11 + Math.cos(angle) * 8,11 + Math.sin(angle) * 8);
          }
-         icon.graphics.lineStyle(2,65535,1);
-         icon.graphics.drawCircle(11,11,6);
+         icon.graphics.lineStyle(1.5,65535,1);
+         icon.graphics.drawCircle(11,11,5);
          icon.graphics.drawCircle(11,11,2);
          button.addChild(icon);
+         button.alpha = 1;
          button.buttonMode = true;
          button.mouseChildren = false;
          button.addEventListener(MouseEvent.CLICK,this.volumeClick);
@@ -346,16 +391,43 @@ package UI
          panel.addChild(closeButton);
          var soundTab:Sprite = this.createTextButton("\u58f0\u97f3",this.showSoundPage);
          var keyTab:Sprite = this.createTextButton("\u952e\u4f4d",this.showKeyPage);
+         var touchTab:Sprite = this.createTextButton("\u89e6\u63a7",this.showTouchPage);
          var playlistTab:Sprite = this.createTextButton("\u6b4c\u5355",this.showPlaylistPage);
-         soundTab.x = 2;
-         soundTab.y = 50;
+         var tabView:Sprite = new Sprite();
+         var tabMask:Shape = new Shape();
+         var previousTab:Sprite = this.createTabArrow(false);
+         var nextTab:Sprite = this.createTabArrow(true);
+         this.settingsTabs = new Sprite();
+         soundTab.x = 0;
+         soundTab.y = 0;
          keyTab.x = 104;
-         keyTab.y = 50;
-         playlistTab.x = 206;
-         playlistTab.y = 50;
-         panel.addChild(soundTab);
-         panel.addChild(keyTab);
-         panel.addChild(playlistTab);
+         keyTab.y = 0;
+         touchTab.x = 208;
+         touchTab.y = 0;
+         playlistTab.x = 312;
+         playlistTab.y = 0;
+         this.settingsTabs.addChild(soundTab);
+         this.settingsTabs.addChild(keyTab);
+         this.settingsTabs.addChild(touchTab);
+         this.settingsTabs.addChild(playlistTab);
+         tabView.x = 53;
+         tabView.y = 50;
+         tabMask.graphics.beginFill(16777215,1);
+         tabMask.graphics.drawRect(0,0,204,32);
+         tabMask.graphics.endFill();
+         tabView.addChild(this.settingsTabs);
+         tabView.addChild(tabMask);
+         this.settingsTabs.mask = tabMask;
+         tabView.addEventListener(MouseEvent.MOUSE_DOWN,this.startSettingsTabDrag);
+         panel.addChild(tabView);
+         previousTab.x = 12;
+         previousTab.y = 50;
+         nextTab.x = 266;
+         nextTab.y = 50;
+         previousTab.addEventListener(MouseEvent.CLICK,this.previousSettingsTabs);
+         nextTab.addEventListener(MouseEvent.CLICK,this.nextSettingsTabs);
+         panel.addChild(previousTab);
+         panel.addChild(nextTab);
          this.soundPage = new Sprite();
          this.soundPage.addChild(this.createSlider(0,"\u97f3\u6548\u97f3\u91cf",105));
          this.soundPage.addChild(this.createSlider(1,"BGM \u97f3\u91cf",190));
@@ -372,6 +444,8 @@ package UI
          panel.addChild(this.keyPage);
          this.playlistPage = this.createPlaylistPage();
          panel.addChild(this.playlistPage);
+         this.touchPage = this.createTouchPage();
+         panel.addChild(this.touchPage);
          resetButton.x = 104;
          resetButton.y = 426;
          panel.addChild(resetButton);
@@ -388,10 +462,10 @@ package UI
          var label:TextField = null;
          var button:Sprite = null;
          page.y = 88;
-         for(i = 0; i < this.keyActions.length; i++)
-         {
-            col = i < 8 || i == 16 ? 0 : 1;
-            row = i == 16 ? 8 : i % 8;
+          for(i = 0; i < this.keyActions.length; i++)
+          {
+             col = i < 8 || i == 17 ? 0 : 1;
+             row = i >= 16 ? 8 : i % 8;
             label = this.makeText(this.keyLabels[i],12,16777215,false);
             label.x = col * 145 + 8;
             label.y = row * 38;
@@ -414,11 +488,196 @@ package UI
          return page;
       }
 
+      private function createTouchPage() : Sprite
+      {
+         var page:Sprite = new Sprite();
+         page.y = 88;
+         var moveTitle:TextField = this.makeText("\u79fb\u52a8\u65b9\u5f0f",16,65535,true);
+         moveTitle.x = 18;
+         page.addChild(moveTitle);
+         page.addChild(this.createTouchOption("move:halfScreen","\u534a\u5c4f\u4efb\u610f\u4f4d\u7f6e\u89e6\u53d1",18,34));
+         var halfScreenStatus:TextField = this.makeText("\uff08\u5236\u4f5c\u5931\u8d25\uff09",12,13421772,false);
+         halfScreenStatus.x = 183;
+         halfScreenStatus.y = 35;
+         halfScreenStatus.mouseEnabled = false;
+         page.addChild(halfScreenStatus);
+         page.addChild(this.createTouchOption("move:fixedStick","\u4ec5\u56fa\u5b9a\u6447\u6746\u533a\u57df",18,68));
+         var attackTitle:TextField = this.makeText("\u653b\u51fb\u65b9\u5f0f",16,65535,true);
+         attackTitle.x = 18;
+         attackTitle.y = 112;
+         page.addChild(attackTitle);
+         page.addChild(this.createTouchOption("attack:stickFire","\u6447\u6746\u5916\u63a8\u76f4\u63a5\u5f00\u706b",18,146));
+         page.addChild(this.createTouchOption("attack:stickButton","\u6447\u6746\u7784\u51c6 + \u653b\u51fb\u952e",18,180));
+         var stickButtonStatus:TextField = this.makeText("\uff08\u5c1a\u672a\u5236\u4f5c\uff09",12,13421772,false);
+         stickButtonStatus.x = 205;
+         stickButtonStatus.y = 181;
+         stickButtonStatus.mouseEnabled = false;
+         page.addChild(stickButtonStatus);
+         page.addChild(this.createTouchOption("attack:touchFire","\u89e6\u5c4f\u7784\u51c6\u5e76\u5f00\u706b",18,214));
+         var touchFireStatus:TextField = this.makeText("\uff08\u5236\u4f5c\u5931\u8d25\uff09",12,13421772,false);
+         touchFireStatus.x = 169;
+         touchFireStatus.y = 215;
+         touchFireStatus.mouseEnabled = false;
+         page.addChild(touchFireStatus);
+         page.addChild(this.createTouchOption("attack:touchButton","\u89e6\u5c4f\u7784\u51c6 + \u653b\u51fb\u952e",18,248));
+         var touchButtonStatus:TextField = this.makeText("\uff08\u5236\u4f5c\u5931\u8d25\uff09",12,13421772,false);
+         touchButtonStatus.x = 205;
+         touchButtonStatus.y = 249;
+         touchButtonStatus.mouseEnabled = false;
+         page.addChild(touchButtonStatus);
+         page.visible = false;
+         return page;
+      }
+
+      private function createTabArrow(rightB:Boolean) : Sprite
+      {
+         var button:Sprite = new Sprite();
+         button.graphics.beginFill(1973790,1);
+         button.graphics.lineStyle(1,65535,1);
+         button.graphics.drawRect(0,0,32,30);
+         button.graphics.endFill();
+         button.graphics.lineStyle(3,16777215,1);
+         if(rightB)
+         {
+            button.graphics.moveTo(11,7);
+            button.graphics.lineTo(21,15);
+            button.graphics.lineTo(11,23);
+         }
+         else
+         {
+            button.graphics.moveTo(21,7);
+            button.graphics.lineTo(11,15);
+            button.graphics.lineTo(21,23);
+         }
+         button.buttonMode = true;
+         return button;
+      }
+
+      private function previousSettingsTabs(e:MouseEvent = null) : *
+      {
+         this.settingsTabPage = Math.max(0,this.settingsTabPage - 1);
+         this.snapSettingsTabs();
+      }
+
+      private function nextSettingsTabs(e:MouseEvent = null) : *
+      {
+         this.settingsTabPage = Math.min(1,this.settingsTabPage + 1);
+         this.snapSettingsTabs();
+      }
+
+      private function startSettingsTabDrag(e:MouseEvent) : *
+      {
+         this.settingsTabDragStartX = e.stageX;
+         this.settingsTabStartX = this.settingsTabs.x;
+         this.settingsTabDragging = true;
+         stage.addEventListener(MouseEvent.MOUSE_MOVE,this.moveSettingsTabDrag);
+         stage.addEventListener(MouseEvent.MOUSE_UP,this.stopSettingsTabDrag);
+      }
+
+      private function moveSettingsTabDrag(e:MouseEvent) : *
+      {
+         if(!this.settingsTabDragging)
+         {
+            return;
+         }
+         this.settingsTabs.x = Math.max(-208,Math.min(0,this.settingsTabStartX + e.stageX - this.settingsTabDragStartX));
+         e.updateAfterEvent();
+      }
+
+      private function stopSettingsTabDrag(e:MouseEvent) : *
+      {
+         stage.removeEventListener(MouseEvent.MOUSE_MOVE,this.moveSettingsTabDrag);
+         stage.removeEventListener(MouseEvent.MOUSE_UP,this.stopSettingsTabDrag);
+         this.settingsTabDragging = false;
+         this.settingsTabPage = this.settingsTabs.x < -104 ? 1 : 0;
+         this.snapSettingsTabs();
+      }
+
+      private function snapSettingsTabs() : *
+      {
+         this.settingsTabs.x = -208 * this.settingsTabPage;
+      }
+
+      private function createTouchOption(name0:String, label0:String, x0:Number, y0:Number) : Sprite
+      {
+         var button:Sprite = new Sprite();
+         var label:TextField = this.makeText(label0,14,16777215,false);
+         button.name = name0;
+         button.x = x0;
+         button.y = y0;
+         button.graphics.beginFill(1973790,1);
+         button.graphics.lineStyle(2,65535,1);
+         button.graphics.drawRect(0,0,22,22);
+         button.graphics.endFill();
+         label.x = 34;
+         label.y = 1;
+         button.addChild(label);
+         button.buttonMode = true;
+         button.mouseChildren = false;
+         button.addEventListener(MouseEvent.CLICK,this.selectTouchOption);
+         this.touchOptionButtons.push(button);
+         return button;
+      }
+
+      private function selectTouchOption(e:MouseEvent) : *
+      {
+         var parts:Array = String(e.currentTarget.name).split(":");
+         if(parts[0] == "move")
+         {
+            this.mobileMoveMode = parts[1];
+         }
+         else
+         {
+            this.mobileAttackMode = parts[1];
+         }
+         this.refreshTouchOptions();
+         this.saveSoundSettings();
+         if(Game.uiGroup != null && Game.uiGroup.gamingUI != null)
+         {
+            Game.uiGroup.gamingUI.refreshMobileControlMode();
+         }
+      }
+
+      private function refreshTouchOptions() : *
+      {
+         var button:Sprite = null;
+         var parts:Array = null;
+         var selected:Boolean = false;
+         for each(button in this.touchOptionButtons)
+         {
+            parts = button.name.split(":");
+            selected = parts[0] == "move" ? parts[1] == this.mobileMoveMode : parts[1] == this.mobileAttackMode;
+            button.graphics.clear();
+            button.graphics.beginFill(1973790,1);
+            button.graphics.lineStyle(2,65535,1);
+            button.graphics.drawRect(0,0,22,22);
+            button.graphics.endFill();
+            if(selected)
+            {
+               button.graphics.lineStyle(3,16777215,1);
+               button.graphics.moveTo(4,11);
+               button.graphics.lineTo(9,17);
+               button.graphics.lineTo(19,5);
+            }
+         }
+      }
+
+      public function getMobileMoveMode() : String
+      {
+         return this.mobileMoveMode;
+      }
+
+      public function getMobileAttackMode() : String
+      {
+         return this.mobileAttackMode;
+      }
+
       private function showSoundPage(e:MouseEvent = null) : *
       {
          this.soundPage.visible = true;
          this.keyPage.visible = false;
          this.playlistPage.visible = false;
+         this.touchPage.visible = false;
       }
 
       private function showKeyPage(e:MouseEvent = null) : *
@@ -426,7 +685,17 @@ package UI
          this.soundPage.visible = false;
          this.keyPage.visible = true;
          this.playlistPage.visible = false;
+         this.touchPage.visible = false;
          this.fleshKeyButtons();
+      }
+
+      private function showTouchPage(e:MouseEvent = null) : *
+      {
+         this.soundPage.visible = false;
+         this.keyPage.visible = false;
+         this.playlistPage.visible = false;
+         this.touchPage.visible = true;
+         this.refreshTouchOptions();
       }
 
       private function showPlaylistPage(e:MouseEvent = null) : *
@@ -434,6 +703,7 @@ package UI
          this.soundPage.visible = false;
          this.keyPage.visible = false;
          this.playlistPage.visible = false;
+         this.touchPage.visible = false;
          this.settingsPanel.visible = false;
          Game.SG.ensureNamedPlaylists();
          if(this.editingPlaylistID == "") this.editingPlaylistID = Game.SG.mainPlaylistID;
@@ -654,18 +924,31 @@ package UI
 
       private function refreshPlaylistOverlay() : *
       {
-         var rows:Array = [];
-         var editing:Object = this.getEditingPlaylist();
-         var selected:Array = editing == null ? [] : editing.tracks as Array;
-         var track:Object = null;
-         var id:String = null;
-         var i:int = 0;
+          var rows:Array = [];
+          var editing:Object = this.getEditingPlaylist();
+          var rawSelected:Array = editing == null || !(editing.tracks is Array) ? [] : editing.tracks as Array;
+          var selected:Array = [];
+          var track:Object = null;
+          var id:String = null;
+          var i:int = 0;
          var row:Sprite = null;
          var label:TextField = null;
          var upButton:Sprite = null;
          var downButton:Sprite = null;
-         var selectButton:Sprite = null;
-         var orderInput:TextField = null;
+          var selectButton:Sprite = null;
+          var orderInput:TextField = null;
+          for each(id in rawSelected)
+          {
+             if((Game.SG.recommendedCatalog.length == 0 || this.findRecommendedTrack(String(id)) != null) && selected.indexOf(String(id)) < 0)
+             {
+                selected.push(String(id));
+             }
+          }
+          if(editing != null && (editing.tracks is Array) && (editing.tracks as Array).length != selected.length)
+          {
+             editing.tracks = selected.concat();
+             this.playlistDraftDirty = true;
+          }
          while(this.playlistOverlayRows.length > 0)
          {
             row = this.playlistOverlayRows.pop();
@@ -1984,6 +2267,14 @@ package UI
             {
                this.backupPromptEnabled = Boolean(this.soundSettings.data.backupPromptEnabled);
             }
+            if(this.soundSettings.data.mobileMoveMode !== undefined)
+            {
+               this.mobileMoveMode = String(this.soundSettings.data.mobileMoveMode);
+            }
+            if(this.soundSettings.data.mobileAttackMode !== undefined)
+            {
+               this.mobileAttackMode = String(this.soundSettings.data.mobileAttackMode);
+            }
          }
          catch(error:Error)
          {
@@ -1995,6 +2286,7 @@ package UI
          this.refreshRecommendedBGMCheck();
          this.refreshCustomPlaylistBGMCheck();
          this.refreshBackupPromptCheck();
+         this.refreshTouchOptions();
          this.applySoundSettings();
          this.saveSoundSettings();
       }
@@ -2028,6 +2320,8 @@ package UI
             this.soundSettings.data.mainPlaylistID = Game.SG.mainPlaylistID;
             this.soundSettings.data.battlePlaylistID = Game.SG.battlePlaylistID;
             this.soundSettings.data.backupPromptEnabled = this.backupPromptEnabled;
+            this.soundSettings.data.mobileMoveMode = this.mobileMoveMode;
+            this.soundSettings.data.mobileAttackMode = this.mobileAttackMode;
             this.soundSettings.flush();
          }
          catch(error:Error)
@@ -2092,6 +2386,17 @@ package UI
          else if(this.playlistPage.visible)
          {
             this.resetPlaylistSettings();
+         }
+         else if(this.touchPage.visible)
+         {
+            this.mobileMoveMode = "halfScreen";
+            this.mobileAttackMode = "stickFire";
+            this.refreshTouchOptions();
+            this.saveSoundSettings();
+            if(Game.uiGroup != null && Game.uiGroup.gamingUI != null)
+            {
+               Game.uiGroup.gamingUI.refreshMobileControlMode();
+            }
          }
          else
          {
@@ -2171,6 +2476,10 @@ package UI
          }
          this.settingsPanel.visible = false;
          if(this.playlistOverlay != null) this.playlistOverlay.visible = false;
+         if(Game.gameState == "gaming" && Game.uiGroup != null && Game.uiGroup.gamingUI != null && Game.uiGroup.gamingUI.visible && Game.uiGroup.leftUI.visible)
+         {
+            Game.uiGroup.gamingUI.enterMobileBattleMode();
+         }
       }
 
       public function isSettingsOpen() : Boolean

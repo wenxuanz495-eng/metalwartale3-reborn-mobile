@@ -142,7 +142,7 @@ package UI.gift
          {
             this.showBtn(2);
          }
-         else if(unlock == 0)
+         else if(Game.gameData.modUnlimitedGifts || unlock == 0)
          {
             this.showBtn(0);
          }
@@ -249,7 +249,10 @@ package UI.gift
             }
             Game.uiGroup.checkTip.showTip("领取成功！",1);
             Game.SG.playSound("upgradeArms");
-            Game.gameData.giftData.setLevelUnlock(index0);
+            if(!Game.gameData.modUnlimitedGifts)
+            {
+               Game.gameData.giftData.setLevelUnlock(index0);
+            }
             this.fleshData();
          }
       }
@@ -259,9 +262,9 @@ package UI.gift
          this.visible = true;
          if(this.isfirst == false)
          {
-            this.showPay(0);
             this.isfirst = true;
          }
+         this.showPay(this.switchLabel.nowIndex);
       }
       
       public function hide(isclear:Boolean = false) : *

@@ -9,6 +9,7 @@ package UI.shop
    import flash.events.MouseEvent;
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
+   import flash.text.TextFieldType;
    import flash.text.StaticText;
    import goods.GoodsDefine;
    import gs.TweenLite;
@@ -541,12 +542,22 @@ package UI.shop
          this.no_btn.y = 105;
          this.input_txt.restrict = null;
          this.input_txt.maxChars = 0;
+         this.input_txt.type = TextFieldType.INPUT;
+         this.input_txt.selectable = true;
+         this.input_txt.mouseEnabled = true;
+         this.input_txt.needsSoftKeyboard = true;
          this.input_txt.text = inputStr;
          this.input_txt.visible = true;
          this.txtBack_mc.visible = true;
          if(this.input_txt.parent != null)
          {
             this.input_txt.parent.setChildIndex(this.input_txt,this.input_txt.parent.numChildren - 1);
+         }
+         if(this.input_txt.stage != null)
+         {
+            this.input_txt.stage.focus = this.input_txt;
+            this.input_txt.setSelection(0,this.input_txt.length);
+            this.input_txt.requestSoftKeyboard();
          }
       }
       
@@ -559,6 +570,10 @@ package UI.shop
       
       public function hide() : *
       {
+         if(this.input_txt.stage != null && this.input_txt.stage.focus == this.input_txt)
+         {
+            this.input_txt.stage.focus = null;
+         }
          this.back.visible = false;
          TweenLite.to(this.mc,0.2,{
             "scaleX":0.7,
