@@ -115,5 +115,5 @@ UI\research\PlayerTrainUI.as
 gameAll\data\PlayerData.as
 gameAll\data\GameData.as
 UI\icon\ItemsArmsIcon.as
-gameAllip\VipData.as
-UIip\VipUI.as
+gameAll\vip\VipData.as
+UI\vip\VipUI.as
