@@ -16,7 +16,7 @@ build/saves/game_save.bin
 
 | 脚本 | 作用 |
 |---|---|
-| `打开存档目录.bat` / `open-saves.bat` | 直接打开正确的存档目录 |
+| `打开存档目录.bat` | 直接打开正确的存档目录 |
 
 根目录 `saves` 链接指向 `build/saves`。
 

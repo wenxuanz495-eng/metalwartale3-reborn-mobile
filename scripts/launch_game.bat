@@ -136,7 +136,7 @@ exit /b 5
 
 :missing_build
 echo [ERROR] Missing build\server.exe or build\game.swf.
-echo Run build.bat before launching the game.
+echo Run 构建.bat before launching the game.
 exit /b 1
 
 :missing_player

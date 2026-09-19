@@ -36,8 +36,8 @@ $modSrc = Join-Path $RepoRoot "runtime\modifier.html"
 $modDst = Join-Path $buildDir "modifier.html"
 $browserProfile = Join-Path $env:TEMP ("superalloy-modifier-profile-" + [guid]::NewGuid().ToString("N"))
 
-if (-not (Test-Path $serverExe)) { throw "missing $serverExe`nPlease run build first: .\build.bat" }
-if (-not (Test-Path $gameSwf)) { throw "missing $gameSwf`nPlease run build first: .\build.bat" }
+if (-not (Test-Path $serverExe)) { throw "missing $serverExe`nPlease run build first: 构建.bat" }
+if (-not (Test-Path $gameSwf)) { throw "missing $gameSwf`nPlease run build first: 构建.bat" }
 if (-not (Test-Path $modSrc)) { throw "missing modifier page: $modSrc" }
 
 New-Item -ItemType Directory -Force -Path $savesDir, $browserProfile | Out-Null
