@@ -494,7 +494,7 @@ package
          stage0 = this.stage;
          addChildAt(gameSprite,0);
          this.MK.x = this.stage.stageWidth - 100;
-         this.MK.visible = false;
+         this.MK.visible = true;
          addChild(this.MK);
          loadingUI = new LoadingUI();
          addChild(loadingUI);

@@ -14,7 +14,7 @@
         <aspectRatio>landscape</aspectRatio>
         <autoOrients>false</autoOrients>
         <renderMode>direct</renderMode>
-        <requestedDisplayResolution>high</requestedDisplayResolution>
+        <requestedDisplayResolution>standard</requestedDisplayResolution>
     </initialWindow>
     <android>
         <manifestAdditions><![CDATA[

@@ -22,7 +22,7 @@ $extensions = Join-Path $project 'sasave-ane'
 New-Item -ItemType Directory -Force $stage,$out | Out-Null
 if (Test-Path $stage) { Get-ChildItem $stage -Force | Remove-Item -Recurse -Force }
 Copy-Item (Join-Path $RepoRoot 'build\game.swf') (Join-Path $stage 'game.swf')
-Copy-Item (Join-Path $RepoRoot 'runtime\swf') (Join-Path $stage 'swf') -Recurse
+Copy-Item (Join-Path $RepoRoot 'build\swf') (Join-Path $stage 'swf') -Recurse
 $supportSource = Join-Path $RepoRoot 'build\ui\support\afdian-support.jpg'
 $supportStage = Join-Path $stage 'ui\support'
 if (!(Test-Path $supportSource)) { throw "support QR image not found: $supportSource" }
