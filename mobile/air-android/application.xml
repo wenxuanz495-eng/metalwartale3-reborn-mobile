@@ -13,7 +13,7 @@
         <fullScreen>true</fullScreen>
         <aspectRatio>landscape</aspectRatio>
         <autoOrients>false</autoOrients>
-        <renderMode>direct</renderMode>
+        <renderMode>gpu</renderMode>
         <requestedDisplayResolution>standard</requestedDisplayResolution>
     </initialWindow>
     <android>
