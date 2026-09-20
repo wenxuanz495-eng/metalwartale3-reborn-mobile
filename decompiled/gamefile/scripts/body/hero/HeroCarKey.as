@@ -18,8 +18,6 @@ package body.hero
    public class HeroCarKey
    {
 
-      private static const PLAYER_JUMP_LIMIT:int = 2;
-      
       internal var KG:KeysGroup;
       
       internal var BB:HeroCarBody;
@@ -31,8 +29,6 @@ package body.hero
       internal var GD:GameData;
       
       public var enabled:Boolean = true;
-
-      public var skillEnabled:Boolean = true;
       
       public function HeroCarKey(_BB:*)
       {
@@ -112,13 +108,19 @@ package body.hero
          }
          else
          {
-            bb12 = Game.LG.level is SpecialExtraLevel_2 && this.BB.skill.getSkill("jump").getUseNum() >= 3;
-            bb13 = Game.LG.level is SpecialExtraLevel_7;
-            if(this.BB.mot.jumpNow < PLAYER_JUMP_LIMIT)
+            if(this.BB.consumeAirGravity())
             {
-               this.BB.mot.toJump();
+               this.BB.mot.toAirGravity();
                Game.EG.addEffect("car","jet_effect",Game.gameSprite.effectL,this.img.x,this.img.y);
             }
+         }
+      }
+
+      public function toAIJump() : *
+      {
+         if(this.BB.mot.toLimitedAirJump(4))
+         {
+            Game.EG.addEffect("car","jet_effect",Game.gameSprite.effectL,this.img.x,this.img.y);
          }
       }
       
@@ -160,15 +162,15 @@ package body.hero
          var openB0:Boolean = false;
          var closeB0:Boolean = false;
          var bb0:Boolean = false;
-         if(!this.skillEnabled)
-         {
-            return;
-         }
          var arr0:Array = this.BB.skill.dataArr;
          for(n in arr0)
          {
             s0 = arr0[n];
             d0 = s0.define;
+            if(d0.name == "jump" && this.KG.getBinding("jump") == this.KG.getBinding("jumpSkill"))
+            {
+               continue;
+            }
             code0 = int(KG.skillKeys[s0.define.name]);
             if(code0 <= 0)
             {
@@ -226,11 +228,11 @@ package body.hero
       
       public function useSkillName(name0:String) : Boolean
       {
+         var s0:OneSkill = this.BB.skill.getSkill(name0);
          if(!this.skillEnabled)
          {
             return false;
          }
-         var s0:OneSkill = this.BB.skill.getSkill(name0);
          return this.useSkill(s0);
       }
       
@@ -252,17 +254,17 @@ package body.hero
          var isArenaB:Boolean = Game.LG.level is ArenaLevel;
          if(name0 == "jump")
          {
-            var sharedJumpKeyB:Boolean = this.KG.getBinding("jump") == this.KG.getBinding("jumpSkill");
-            if(sharedJumpKeyB && this.mot.getFloorB())
-            {
-               s0.closeSkill();
-               return false;
-            }
-            if(sharedJumpKeyB && this.mot.jumpNow < PLAYER_JUMP_LIMIT)
+            if(this.mot.getFloorB())
             {
                return false;
             }
-            s0.useSkill();
+            if(this.BB.consumeAirGravity())
+            {
+               this.mot.toAirGravity();
+               Game.EG.addEffect("car","jet_effect",Game.gameSprite.effectL,this.img.x,this.img.y);
+               return true;
+            }
+            return false;
          }
          else
          {
