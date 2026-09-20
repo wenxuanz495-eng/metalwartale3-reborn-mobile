@@ -141,3 +141,9 @@ UI\gaming\GamingArmsIcon.as
 UI\explore\ExploreIcon.as
 body\image\SingleMovieclip.as
 body\attack\ArmsAttack.as
+UI\shop\ShopIcon.as
+UI\task\TaskIcon.as
+body\hero\ArmsImage.as
+body\hero\HeroCarAAHD.as
+body\hero\HeroCarImage.as
+body\bullet\OneBulletBody.as

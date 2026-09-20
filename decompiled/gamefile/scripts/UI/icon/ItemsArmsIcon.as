@@ -384,12 +384,12 @@ package UI.icon
          this.icon.addChild(mc0);
          var mc1:* = mc0.getChildByName("shootPoint");
          var mc2:* = mc0.getChildByName("basePoint");
+         var mc3:* = mc0.getChildByName("laserPoint");
          if(mc1 is MovieClip)
          {
             mc0.removeChild(mc1);
             mc0.removeChild(mc2);
          }
-         var mc3:* = mc0.getChildByName("laserPoint");
          if(mc3 is MovieClip)
          {
             mc0.removeChild(mc3);

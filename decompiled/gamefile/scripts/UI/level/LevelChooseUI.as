@@ -102,7 +102,7 @@ package UI.level
          var p0:OnePackData = this.nData.nowPack;
          if(this.GD.modUnlockAll || this.GD.modAllLevelsPassed)
          {
-            this.levelBox.setLock(p0.levelsMax,this.nData.levelPack == "p1");
+            this.levelBox.setLock(p0.levelsMax,false);
             return;
          }
          if(this.nData.levelPack == "p1")

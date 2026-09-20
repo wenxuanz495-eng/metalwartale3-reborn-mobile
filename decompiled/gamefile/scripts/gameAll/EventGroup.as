@@ -406,6 +406,7 @@ package gameAll
             Game.uiGroup.unionUI.FisCityFight();
          }
          this.UIG.show("gameWin");
+         this.UIG.gameoverUI.winShow(this.LG.state);
          this.awardFirstClearMCoin();
          this.gameOverFlash("win");
          Game.uiGroup.saveDataNoUI();
@@ -713,7 +714,11 @@ package gameAll
          var d0:OneHonorDefine = this.GD.honorData.getNowDefine();
          var honor0:String = d0.name;
          var vip_d:OneVipDefine = this.GD.vipData.getNowDefine();
-         if(honor0 == "no" && !vip_d)
+         if(this.GD.honorData.hideHonor == true)
+         {
+            this.hero.headTitle.visible = false;
+         }
+         else if(honor0 == "no" && !vip_d)
          {
             this.hero.headTitle.visible = false;
          }
@@ -838,6 +843,7 @@ package gameAll
       
       public function gamingOver() : *
       {
+         this.GAME.music.play(10000);
          this.hero.stopAllImage();
          this.dieDelay.gameOver();
       }
