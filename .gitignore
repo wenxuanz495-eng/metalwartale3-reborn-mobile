@@ -5,3 +5,4 @@ mobile/air-android/test-release.p12
 
 # 构建产物目录（对齐端游仓规则）
 /build/
+/logs/
