@@ -29,6 +29,7 @@ package body.hero
       internal var GD:GameData;
       
       public var enabled:Boolean = true;
+      public var skillEnabled:Boolean = true;
       
       public function HeroCarKey(_BB:*)
       {
