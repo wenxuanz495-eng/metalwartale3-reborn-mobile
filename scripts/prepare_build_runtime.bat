@@ -28,7 +28,7 @@ if not exist "%BUILD_DIR%\ui\support" mkdir "%BUILD_DIR%\ui\support"
 
 for /f "usebackq tokens=1,*" %%H in ("%MANIFEST%") do call :copy_resource "%%H" "%%I"
 if defined COPY_FAILED goto copy_failed
-if not "!RESOURCE_COUNT!"=="175" goto count_failed
+if not "!RESOURCE_COUNT!"=="176" goto count_failed
 
 if not exist "%REPO_ROOT%\config\build\resource-overrides\car1130.swf" goto missing_input
 if not exist "%REPO_ROOT%\config\build\resource-overrides\battle_boom.mp3" goto missing_input
@@ -111,7 +111,7 @@ if errorlevel 1 (
 )
 set /a RESOURCE_COUNT+=1
 set /a RESOURCE_PROGRESS=RESOURCE_COUNT%%25
-if "!RESOURCE_PROGRESS!"=="0" echo [CHECK] Runtime resources verified: !RESOURCE_COUNT!/175
+if "!RESOURCE_PROGRESS!"=="0" echo [CHECK] Runtime resources verified: !RESOURCE_COUNT!/176
 exit /b 0
 
 :hash_file
@@ -130,7 +130,7 @@ echo [ERROR] Runtime resource preparation failed: !COPY_FAILED!
 exit /b 2
 
 :count_failed
-echo [ERROR] Expected 175 resource files, prepared !RESOURCE_COUNT!.
+echo [ERROR] Expected 176 resource files, prepared !RESOURCE_COUNT!.
 exit /b 3
 
 :recommended_bgm_failed

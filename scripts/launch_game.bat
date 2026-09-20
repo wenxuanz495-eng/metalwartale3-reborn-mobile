@@ -51,7 +51,7 @@ if not exist "%SAVE_DIR%\game_save.bin" if exist "%BUILD_DIR%\swf\empty-save-tem
 if not exist "%SAVE_DIR%\game_save.bin" goto save_seed_failed
 
 if not exist "%BUILD_DIR%\.release-ready" (
-  echo [CHECK] Verifying 175 tracked runtime resources before launch...
+  echo [CHECK] Verifying 176 tracked runtime resources before launch...
   echo [CHECK] If the window title starts with Select, press Esc to resume.
   call "%~dp0prepare_build_runtime.bat"
   if errorlevel 1 exit /b %ERRORLEVEL%
