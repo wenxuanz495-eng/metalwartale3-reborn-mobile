@@ -21,7 +21,7 @@ $workspaceRoot = Split-Path $RepoRoot -Parent
 # adt 对中文路径存在代码页坑（见移植台账/交接沉淀）：封装先落本仓 ASCII 目录 dist\，
 # 成功后自动改名搬入测试归集文件夹并生成 .sha256.txt。
 $out = Join-Path $project 'dist'
-$deliverDir = Join-Path $workspaceRoot '临时封装目录\手游端\测试'
+$deliverDir = Join-Path $workspaceRoot '临时封装目录\手游端\3.x.x'
 if (![string]::IsNullOrWhiteSpace($OutDir)) { $deliverDir = $OutDir }
 $cert = Join-Path $project 'test-release.p12'
 $extensions = Join-Path $project 'sasave-ane'
@@ -70,7 +70,7 @@ if (Test-Path $appXml) {
     if ($m) { $version = $m.Matches[0].Groups[1].Value }
 }
 $date0 = Get-Date -Format 'yyyyMMdd'
-$nameParts = @('SuperAlloy-Mobile', $version, '测试')
+$nameParts = @('SuperAlloy-Mobile', $version)
 if (![string]::IsNullOrWhiteSpace($Theme)) { $nameParts += $Theme }
 $nameParts += @($date0, $Arch, $(if ($Release) { 'release.apk' } else { 'debug.apk' }))
 $finalName = $nameParts -join '-'

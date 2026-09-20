@@ -35,7 +35,7 @@
 | 打 APK | `$env:AIR_SDK="D:\superalloy\工具\air-mobile-tools\airsdk-50.2.4.1"` 后运行 `mobile\air-android\build-apk.ps1`（支持 `-Arch armv7/armv8/x86/x64`、`-Release`；captive runtime） |
 | 重编 ANE | `mobile\air-android\sasave-ane\build-ane.ps1` |
 
-APK 产物自动归档到 `D:\superalloy\临时封装目录\手游端\测试\`（命名 `SuperAlloy-Mobile-<版本>-测试-[-主题]-YYYYMMDD-<arch>.apk` 附 `.sha256.txt`；`-Theme` 参数加主题；封装先落仓内 ASCII 目录 `dist\` 再搬入，规避 adt 中文路径代码页坑）；签名证书 `test-release.p12`（首跑自动生成，密码 `superalloy-test`，勿入库）。
+APK 产物自动归档到 `D:\superalloy\临时封装目录\手游端\3.x.x\`（命名 `SuperAlloy-Mobile-<版本>-[-主题]-YYYYMMDD-<arch>.apk` 附 `.sha256.txt`；`-Theme` 参数加主题；封装先落仓内 ASCII 目录 `dist\` 再搬入，规避 adt 中文路径代码页坑）；签名证书 `test-release.p12`（首跑自动生成，密码 `superalloy-test`，勿入库）。
 
 ## 四、目录导航
 
