@@ -1111,11 +1111,19 @@ package UI
 
       private function findTopVisibleReturnButton(container0:DisplayObjectContainer) : DisplayObject
       {
+         if(container0 == null)
+         {
+            return null;
+         }
          var child0:DisplayObject = null;
          var found0:DisplayObject = null;
          for(var i:int = container0.numChildren - 1; i >= 0; i--)
          {
             child0 = container0.getChildAt(i);
+            if(child0 == null)
+            {
+               continue;
+            }
             if(child0 == this.mobileCloseProxy || !child0.visible || child0.alpha <= 0)
             {
                continue;

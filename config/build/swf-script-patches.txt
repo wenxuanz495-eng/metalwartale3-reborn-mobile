@@ -117,3 +117,5 @@ gameAll\data\GameData.as
 UI\icon\ItemsArmsIcon.as
 gameAll\vip\VipData.as
 UI\vip\VipUI.as
+UI\honor\HonorUI.as
+gameAll\honor\HonorData.as

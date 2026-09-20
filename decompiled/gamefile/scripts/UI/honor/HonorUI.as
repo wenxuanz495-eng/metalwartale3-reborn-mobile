@@ -6,49 +6,64 @@ package UI.honor
    import flash.display.SimpleButton;
    import flash.display.Sprite;
    import flash.events.MouseEvent;
+   import flash.filters.DropShadowFilter;
+   import flash.filters.GlowFilter;
    import flash.text.TextField;
+   import flash.text.TextFormat;
    import gameAll.honor.HonorData;
    import gameAll.honor.OneHonorDefine;
-   
+
    public class HonorUI extends Sprite
    {
-      
+
       public var labelCtrl:LabelCtrl = new LabelCtrl();
-      
+
       public var ac_btn:SimpleButton;
-      
+
       public var noac_btn:SimpleButton;
-      
+
       public var have_btn:SimpleButton;
-      
+
       public var no_btn:SimpleButton;
-      
+
       public var light_sp:Sprite;
-      
+
       public var honorData:HonorData;
-      
+
       public var nowHonor_txt:TextField;
-      
+
       public var property_txt:TextField;
-      
+
       public var condition_txt:TextField;
-      
+
       public var use_btn:SimpleButton;
-      
+
       public var sBar:SountoScrollBar;
-      
+
       public var con:Sprite = new Sprite();
-      
+
       public var cover_mc:Sprite;
-      
+
       public var bar_arr:Array = [];
-      
+
       public var nowChoosebar:* = null;
-      
+
       public var honor_mc:*;
-      
+
       public var ac:AchievementUI;
-      
+
+      public var smallBtnWrap:Sprite = new Sprite();
+
+      public var useSmallBtn:SimpleButton;
+
+      public var hideBtn:SimpleButton;
+
+      public var toggle_txt:TextField;
+
+      public var useWrap:Sprite;
+
+      public var hideWrap:Sprite;
+
       public function HonorUI()
       {
          super();
@@ -70,8 +85,84 @@ package UI.honor
          this.labelCtrl.addEventListener(ClickEvent.ON_CLICK,this.labelClick);
          this.use_btn.addEventListener(MouseEvent.CLICK,this.useClick);
          this.honor_mc.addChild(this.sBar);
+         this.makeSmallButtons();
       }
-      
+
+      public function makeSmallButtons() : *
+      {
+         var rightEdge:Number = 933;
+         var cy0:Number = this.use_btn.y + this.use_btn.height / 2;
+         this.useWrap = this.makeSmallBtn("y","使用称号",rightEdge - 114,cy0 - 18);
+         this.hideWrap = this.makeSmallBtn("b","隐藏称号",rightEdge - 114 - 10 - 114,cy0 - 18);
+         this.useSmallBtn = this.useWrap.getChildAt(0) as SimpleButton;
+         this.hideBtn = this.hideWrap.getChildAt(0) as SimpleButton;
+         this.toggle_txt = this.hideWrap.getChildAt(1) as TextField;
+         this.useSmallBtn.addEventListener(MouseEvent.CLICK,this.useSmallClick);
+         this.hideBtn.addEventListener(MouseEvent.CLICK,this.toggleClick);
+         this.use_btn.visible = false;
+         this.honor_mc.addChild(this.smallBtnWrap);
+      }
+
+      public function makeSmallBtn(style0:String, label0:String, px:Number, py:Number) : Sprite
+      {
+         var wrap0:Sprite = new Sprite();
+         var btn0:SimpleButton = new SimpleButton();
+         btn0.upState = this.drawUi3Frame(style0,false);
+         btn0.overState = this.drawUi3Frame(style0,true);
+         btn0.downState = this.drawUi3Frame(style0,true);
+         btn0.hitTestState = btn0.upState;
+         wrap0.addChild(btn0);
+         var t0:TextField = new TextField();
+         var f0:DropShadowFilter = new DropShadowFilter(0,45,0,0.9,3,3,1);
+         t0.defaultTextFormat = new TextFormat("_sans",14,16777215,true,null,null,null,null,"center");
+         t0.text = label0;
+         t0.width = 114;
+         t0.height = 36;
+         t0.x = 0;
+         t0.y = (36 - t0.textHeight) / 2;
+         t0.mouseEnabled = false;
+         t0.filters = [f0];
+         wrap0.addChild(t0);
+         wrap0.x = px;
+         wrap0.y = py;
+         this.smallBtnWrap.addChild(wrap0);
+         return wrap0;
+      }
+
+      public function drawUi3Frame(style0:String, hoverB:Boolean) : Sprite
+      {
+         var edge0:uint = 0;
+         var bright0:uint = 0;
+         var fill0:uint = 0;
+         if(style0 == "b")
+         {
+            edge0 = hoverB?56319:27828;
+            bright0 = hoverB?56319:55805;
+            fill0 = 396568;
+         }
+         else
+         {
+            edge0 = hoverB?16572931:9325825;
+            bright0 = hoverB?16572931:16631552;
+            fill0 = 1638403;
+         }
+         var sp0:Sprite = new Sprite();
+         var g0:* = sp0.graphics;
+         g0.lineStyle(2,edge0,1);
+         g0.drawRoundRect(1,1,112,34,10,10);
+         g0.lineStyle(2,bright0,1);
+         g0.drawRoundRect(4,4,106,28,7,7);
+         g0.beginFill(fill0,1);
+         g0.drawRoundRect(6,6,102,24,5,5);
+         g0.endFill();
+         g0.lineStyle(1,bright0,0.75);
+         g0.moveTo(18,7.5);
+         g0.lineTo(96,7.5);
+         var f0:GlowFilter = new GlowFilter(bright0,0.55,8,8,1);
+         sp0.filters = [f0];
+         return sp0;
+      }
+
       public function addBar_byArr(arr0:Array) : *
       {
          var n:* = undefined;
@@ -91,7 +182,7 @@ package UI.honor
          }
          this.sBar.setTarget(this.con);
       }
-      
+
       public function clearAllBar() : *
       {
          var n:* = undefined;
@@ -106,7 +197,7 @@ package UI.honor
          this.bar_arr.length = 0;
          this.nowChoosebar = null;
       }
-      
+
       public function showLabel(label0:String) : *
       {
          var arr1:Array = null;
@@ -135,12 +226,14 @@ package UI.honor
             if(label0 == "have")
             {
                this.addBar_byArr(arr1);
-               this.use_btn.visible = true;
+               this.use_btn.visible = false;
+               this.smallBtnWrap.visible = true;
             }
             else
             {
                this.addBar_byArr(arr2);
                this.use_btn.visible = false;
+               this.smallBtnWrap.visible = false;
             }
             if(this.bar_arr.length > 0)
             {
@@ -149,17 +242,55 @@ package UI.honor
             this.fleshData();
          }
       }
-      
+
       public function fleshData() : *
       {
+         var data0:OneHonorDefine = null;
          if(Boolean(this.nowChoosebar))
          {
             this.chooseBar(this.nowChoosebar);
          }
-         var data0:OneHonorDefine = this.honorData.getNowDefine();
-         this.nowHonor_txt.text = data0.cnName;
+         data0 = this.honorData.getNowDefine();
+         if(this.honorData.hideHonor == true && data0 != null && data0.name != "no")
+         {
+            this.nowHonor_txt.text = data0.cnName + "（隐藏）";
+         }
+         else
+         {
+            this.nowHonor_txt.text = data0.cnName;
+         }
+         this.fleshSmallBtnState();
       }
-      
+
+      public function fleshSmallBtnState() : *
+      {
+         var useEnableB:Boolean = false;
+         var d0:* = null;
+         if(Boolean(this.nowChoosebar))
+         {
+            d0 = this.nowChoosebar.itemsData;
+            if(d0.name != this.honorData.nowHonor && this.honorData.getData(d0.name) != null)
+            {
+               useEnableB = true;
+            }
+         }
+         this.setSmallBtnState(this.useWrap,this.useSmallBtn,useEnableB);
+         this.setSmallBtnState(this.hideWrap,this.hideBtn,true);
+         if(this.toggle_txt != null)
+         {
+            this.toggle_txt.text = this.honorData.hideHonor == true?"显示称号":"隐藏称号";
+         }
+      }
+
+      public function setSmallBtnState(wrap0:Sprite, btn0:SimpleButton, enableB:Boolean) : *
+      {
+         if(Boolean(wrap0) && Boolean(btn0))
+         {
+            wrap0.alpha = enableB?1:0.3;
+            btn0.mouseEnabled = enableB;
+         }
+      }
+
       public function chooseBar(bar0:HonorTextBar) : *
       {
          var n:* = undefined;
@@ -191,7 +322,7 @@ package UI.honor
          }
          bar0.setState(1);
       }
-      
+
       private function setUseBtn(state0:String = "") : *
       {
          if(state0 == "no")
@@ -205,19 +336,19 @@ package UI.honor
             this.use_btn.mouseEnabled = true;
          }
       }
-      
+
       public function barClick(e:MouseEvent) : *
       {
          this.nowChoosebar = e.target;
          this.fleshData();
       }
-      
+
       public function labelClick(e:*) : *
       {
          trace("显示标签:" + this.labelCtrl.nowLabel);
          this.showLabel(this.labelCtrl.nowLabel);
       }
-      
+
       public function useClick(e:*) : *
       {
          if(Boolean(this.nowChoosebar))
@@ -232,11 +363,27 @@ package UI.honor
             Game.uiGroup.carShow.copyAll();
          }
       }
-      
+
+      public function useSmallClick(e:*) : *
+      {
+         this.useClick(e);
+      }
+
+      public function toggleClick(e:*) : *
+      {
+         this.honorData.hideHonor = this.honorData.hideHonor != true;
+         if(this.toggle_txt != null)
+         {
+            this.toggle_txt.text = this.honorData.hideHonor == true?"显示称号":"隐藏称号";
+         }
+         this.fleshData();
+         Game.uiGroup.checkTip.showTip(this.honorData.hideHonor == true?"称号已隐藏（属性仍生效）":"称号已显示",1);
+         Game.eventGroup.fleshHonor();
+      }
+
       public function hide(e:* = null) : *
       {
          visible = false;
       }
    }
 }
-
