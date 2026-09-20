@@ -389,6 +389,11 @@ package UI.icon
             mc0.removeChild(mc1);
             mc0.removeChild(mc2);
          }
+         var mc3:* = mc0.getChildByName("laserPoint");
+         if(mc3 is MovieClip)
+         {
+            mc0.removeChild(mc3);
+         }
          var rect0:Rectangle = mc0.getRect(mc0);
          mc0.x = -rect0.x - rect0.width / 2;
          mc0.y = -rect0.y - rect0.height / 2;

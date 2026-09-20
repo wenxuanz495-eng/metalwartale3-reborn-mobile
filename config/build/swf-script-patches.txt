@@ -113,3 +113,4 @@ body\skill\OneSkill.as
 UI\research\PlayerTrainUI.as
 gameAll\data\PlayerData.as
 gameAll\data\GameData.as
+UI\icon\ItemsArmsIcon.as
