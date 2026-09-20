@@ -1469,7 +1469,7 @@ package UI.server
          this.notice_txt.wordWrap = true;
          this.notice_txt.selectable = false;
          this.notice_txt.defaultTextFormat = new TextFormat("_sans",13,65331,null,null,null,null,null,null,0,0,3,2);
-         this.notice_txt.text = "【超合金离线优化海豹版 1.2.4 内测更新】\n详细更新内容请查看游戏根目录的游戏更新公告.txt。";
+         this.notice_txt.text = "【超合金战记手游 1.2.5 更新】\n火神炮能量与射速机制还原 · 武器菜单一律可开（含关卡内）· 新美术武器挂点标记全隐藏 · 感应炮激光出射修正 · 新手教程与守望者音效修复 · 修改器冷却链与全解锁直通。";
          box.addChild(this.notice_txt);
          return box;
       }
