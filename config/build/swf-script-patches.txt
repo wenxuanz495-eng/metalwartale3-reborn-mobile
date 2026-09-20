@@ -136,3 +136,7 @@ gameAll\data\GameData.as
 UI\gaming\SkillIcon.as
 UI\top\HighPlayerBox.as
 body\skill\AirGravitySkill.as
+UI\icon\AllIconLoader.as
+UI\gaming\GamingArmsIcon.as
+UI\explore\ExploreIcon.as
+body\image\SingleMovieclip.as
