@@ -698,11 +698,15 @@ package UI.gaming
             this.mobileJumpDelayFrames--;
             return;
          }
-         if(this.mobileJumpCount < 2 && (hero.mot.getFloorB() || hero.mot.jumpNow < 2))
+         if(hero.mot.getFloorB())
          {
             hero.key.toJump();
-            ++this.mobileJumpCount;
             this.mobileJumpDelayFrames = 8;
+            return;
+         }
+         if(hero.consumeAirGravity != null && hero.consumeAirGravity())
+         {
+            hero.mot.toAirGravity();
             return;
          }
          this.startMobileGravity(jumpSkill);
