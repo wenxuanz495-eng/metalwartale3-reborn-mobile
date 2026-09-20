@@ -6,6 +6,7 @@ set "REPO_ROOT=%~dp0.."
 for %%I in ("%REPO_ROOT%") do set "REPO_ROOT=%%~fI"
 set "BUILD_DIR=%REPO_ROOT%\build"
 set "MANIFEST=%REPO_ROOT%\docs\baselines\1.26.2.1-BAT.sha256"
+set "CURRENT_MANIFEST=%REPO_ROOT%\config\build\current-resource-manifest.sha256"
 set "RESOURCE_SOURCE=%REPO_ROOT%\swf"
 set "RESOURCE_COUNT=0"
 set "RESOURCE_PROGRESS=0"
@@ -98,6 +99,13 @@ if not exist "!SOURCE!" (
   set "COPY_FAILED=missing tracked resource: !NAME!"
   exit /b 0
 )
+set "CURRENT_EXPECTED="
+if exist "%CURRENT_MANIFEST%" (
+  for /f "usebackq tokens=1,*" %%A in ("%CURRENT_MANIFEST%") do (
+    if /i "!NAME!"=="%%~nxB" set "CURRENT_EXPECTED=%%A"
+  )
+)
+if defined CURRENT_EXPECTED set "EXPECTED=!CURRENT_EXPECTED!"
 call :hash_file "!SOURCE!" ACTUAL
 if /i not "!ACTUAL!"=="!EXPECTED!" (
   set "COPY_FAILED=resource hash mismatch: !NAME!"
