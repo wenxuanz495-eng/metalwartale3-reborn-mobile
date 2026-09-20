@@ -29,6 +29,8 @@ New-Item -ItemType Directory -Force $stage,$out | Out-Null
 if (Test-Path $stage) { Get-ChildItem $stage -Force | Remove-Item -Recurse -Force }
 Copy-Item (Join-Path $RepoRoot 'build\game.swf') (Join-Path $stage 'game.swf')
 Copy-Item (Join-Path $RepoRoot 'build\swf') (Join-Path $stage 'swf') -Recurse
+Copy-Item (Join-Path $RepoRoot 'runtime\游戏更新公告.txt') (Join-Path $stage 'notice_update.txt')
+Copy-Item (Join-Path $RepoRoot 'runtime\感谢公告.txt') (Join-Path $stage 'notice_thanks.txt')
 $supportSource = Join-Path $RepoRoot 'build\ui\support\afdian-support.jpg'
 $supportStage = Join-Path $stage 'ui\support'
 if (!(Test-Path $supportSource)) { throw "support QR image not found: $supportSource" }
@@ -57,7 +59,7 @@ if (!(Test-Path $cert)) {
 
 $target = Join-Path $out ("SuperAlloy-Mobile-Test-$Arch-" + $(if ($Release) { 'release.apk' } else { 'debug.apk' }))
 if (Test-Path $target) { Remove-Item $target -Force }
-$args = @('-package', '-target', $(if ($Release) { 'apk' } else { 'apk-debug' }), '-arch', $Arch, '-storetype', 'pkcs12', '-keystore', $cert, '-storepass', 'superalloy-test', $target, (Join-Path $project 'application.xml'), '-extdir', $extensions, '-C', $stage, 'game.swf', '-C', $stage, 'swf', '-C', $stage, 'ui')
+$args = @('-package', '-target', $(if ($Release) { 'apk' } else { 'apk-debug' }), '-arch', $Arch, '-storetype', 'pkcs12', '-keystore', $cert, '-storepass', 'superalloy-test', $target, (Join-Path $project 'application.xml'), '-extdir', $extensions, '-C', $stage, 'game.swf', '-C', $stage, 'swf', '-C', $stage, 'ui', '-C', $stage, 'notice_update.txt', '-C', $stage, 'notice_thanks.txt')
 & $adt @args
 if ($LASTEXITCODE -ne 0) { throw "adt package failed: $LASTEXITCODE" }
 

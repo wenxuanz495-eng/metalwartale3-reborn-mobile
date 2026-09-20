@@ -1469,7 +1469,7 @@ package UI.server
          this.notice_txt.wordWrap = true;
          this.notice_txt.selectable = false;
          this.notice_txt.defaultTextFormat = new TextFormat("_sans",13,65331,null,null,null,null,null,null,0,0,3,2);
-         this.notice_txt.text = "【超合金战记手游 1.2.5 更新】\n火神炮能量与射速机制还原 · 武器菜单一律可开（含关卡内）· 新美术武器挂点标记全隐藏 · 感应炮激光出射修正 · 新手教程与守望者音效修复 · 修改器冷却链与全解锁直通。";
+         this.notice_txt.text = "【超合金战记手游版 3.0.3 更新】\n手游版已同步端游 3.0 全部内容：老武器家族特效大复原 · 黄金系列新形态 · 星际雷神重做 · 雪花炮2026 · 火神炮实弹化 · 多项修复（详见公告页）。";
          box.addChild(this.notice_txt);
          return box;
       }
@@ -1480,7 +1480,7 @@ package UI.server
          this.noticeLoader.dataFormat = URLLoaderDataFormat.TEXT;
          this.noticeLoader.addEventListener(Event.COMPLETE,this.offlineNoticeLoaded);
          this.noticeLoader.addEventListener(IOErrorEvent.IO_ERROR,this.offlineNoticeLoadFailed);
-         this.noticeLoader.load(new URLRequest("游戏更新公告.txt?time=" + new Date().time));
+         this.noticeLoader.load(new URLRequest("notice_update.txt"));
       }
 
       private function loadGameNotice() : void
@@ -1489,7 +1489,7 @@ package UI.server
          this.gameNoticeLoader.dataFormat = URLLoaderDataFormat.TEXT;
          this.gameNoticeLoader.addEventListener(Event.COMPLETE,this.gameNoticeLoaded);
          this.gameNoticeLoader.addEventListener(IOErrorEvent.IO_ERROR,this.gameNoticeLoadFailed);
-         this.gameNoticeLoader.load(new URLRequest("感谢公告.txt?time=" + new Date().time));
+         this.gameNoticeLoader.load(new URLRequest("notice_thanks.txt"));
       }
 
       private function gameNoticeLoaded(event:Event) : void
