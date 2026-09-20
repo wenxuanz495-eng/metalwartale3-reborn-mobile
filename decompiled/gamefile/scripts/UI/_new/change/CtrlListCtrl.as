@@ -46,10 +46,6 @@ package UI._new.change
          father = fa0;
          if(father.allType == "arms")
          {
-            if(Game.gameState != "no")
-            {
-               return;
-            }
             if(Boolean(armsList()))
             {
                showList(ic0);
@@ -167,6 +163,7 @@ package UI._new.change
          if(ic0.state == "fill")
          {
             id0 = ic0.itemsData;
+            d0 = id0.getArmsDefine();
             list_arr = [];
             if(fa0.dataType == "equip")
             {
@@ -181,7 +178,6 @@ package UI._new.change
             }
             else
             {
-               d0 = id0.getArmsDefine();
                if(d0.index >= 49)
                {
                   list_arr = [5,3];
@@ -337,11 +333,28 @@ package UI._new.change
          da0.fleshData();
          dg0.fleshData();
          fleshData();
+         refreshActiveArmsAfterFormChange(da0);
          Game.eventGroup.fleshSkill();
          Game.uiGroup.carShow.copyAll();
          Game.uiGroup.saveDataNoUI("切换武器形态");
          Game.SG.playSound("upgradeArms");
          Game.uiGroup.checkTip.showTip("已切换为第 " + (target0 + 1) + " 阶形态。",1);
+      }
+
+      private static function refreshActiveArmsAfterFormChange(da0:ArmsItemsData) : *
+      {
+         if(Game.gameState == "no" || father == null || father.dataType != "equip")
+         {
+            return;
+         }
+         if(father.type == "arms" && da0.site == Game.gameData.nowArmsIndex)
+         {
+            Game.eventGroup.fleshArms();
+         }
+         else if(father.type == "sub")
+         {
+            Game.eventGroup.fleshSub();
+         }
       }
       
       private static function sellArms() : *
