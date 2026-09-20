@@ -154,6 +154,7 @@ package UI.gaming
       private var mobileJumpDelayFrames:int = 0;
 
       private var mobileJumpCount:int = 0;
+      private var mobileGravityInterval:int = 0;
 
       private var mobileGravityHeld:Boolean = false;
 
@@ -700,16 +701,26 @@ package UI.gaming
          }
          if(hero.mot.getFloorB())
          {
-            hero.key.toJump();
-            this.mobileJumpDelayFrames = 8;
+            this.mobileGravityInterval = 0;
+            if(this.mobileJumpCount == 0)
+            {
+               hero.key.toJump();
+               this.mobileJumpDelayFrames = 8;
+               this.mobileJumpCount = 1;
+            }
+            return;
+         }
+         if(this.mobileGravityInterval > 0)
+         {
+            --this.mobileGravityInterval;
             return;
          }
          if(hero.consumeAirGravity != null && hero.consumeAirGravity())
          {
             hero.mot.toAirGravity();
+            this.mobileGravityInterval = 12;
             return;
          }
-         this.startMobileGravity(jumpSkill);
       }
 
       private function startMobileGravity(jumpSkill:*) : void
@@ -731,6 +742,7 @@ package UI.gaming
          }
          this.mobileJumpDelayFrames = 0;
          this.mobileJumpCount = 0;
+         this.mobileGravityInterval = 0;
          this.mobileGravityHeld = false;
       }
 
