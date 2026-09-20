@@ -71,7 +71,6 @@ import body.skill.SpeedUpSkill;
       public var hitRect:Rectangle = new Rectangle();
       
       public var noAttack_t:Number = -1;
-
       public var mobileAimB:Boolean = false;
       
       public var ai:Hero_AI;
@@ -287,6 +286,7 @@ import body.skill.SpeedUpSkill;
             id0 = arr[0];
             level0 = int(arr[1]) - 1;
          }
+         this.attack.resetForArmsChange();
          this.armsDefine.inData(id0,level0,"",itemsData);
          this.img.arms.showMC(this.armsDefine.armsImgLabel);
          this.img.arms.startHurtEffect(0.1);
@@ -483,7 +483,7 @@ import body.skill.SpeedUpSkill;
       public function energyUse() : *
       {
          var aid:ArmsItemsData = null;
-         var arr0:Array = null;
+         var arr:Array = null;
          var aid0:ArmsItemsData = null;
          if(this.attack.state == "start")
          {
@@ -500,8 +500,8 @@ import body.skill.SpeedUpSkill;
                }
                else
                {
-                  arr0 = Game.gameData.armsItems.equArr;
-                  aid0 = arr0[int(arr0.length * Math.random())];
+                  arr = Game.gameData.armsItems.equArr;
+                  aid0 = arr[int(arr.length * Math.random())];
                   if(Boolean(aid0))
                   {
                      Game.eventGroup.changArms(aid0.site);
@@ -522,6 +522,37 @@ import body.skill.SpeedUpSkill;
             }
          }
       }
+
+      // 火神炮专用状态机（fireFairyLooping）长按期间不再回到 state=="start"，
+      // 通用扣能点 energyUse() 被整体绕过；每发实弹必须经此入口扣 1 点能量。
+      // 返回 false 表示能量不足并已尝试自动换枪（状态机可能已被 resetForArmsChange 重置），调用方必须立即返回。
+      public function consumeFairyShotEnergy() : Boolean
+      {
+         var aid:ArmsItemsData = null;
+         var arr:Array = null;
+         var aid0:ArmsItemsData = null;
+         if(Game.gameData.nowArmsIndex < 0)
+         {
+            return true;
+         }
+         aid = Game.gameData.nowArmsData;
+         if(aid == null)
+         {
+            return true;
+         }
+         if(aid.nowEnergy >= 1)
+         {
+            aid.setEnergy(-1);
+            return true;
+         }
+         arr = Game.gameData.armsItems.equArr;
+         aid0 = arr[int(arr.length * Math.random())];
+         if(Boolean(aid0))
+         {
+            Game.eventGroup.changArms(aid0.site);
+         }
+         return false;
+      }
       
       public function setNoAttack(tt0:Number) : *
       {
@@ -539,8 +570,9 @@ import body.skill.SpeedUpSkill;
          if(this.img.bodyState != str0)
          {
             this.img.changeState(str0,changeT0);
-            if(str0 == "fly")
+             if(str0 == "fly")
             {
+               this.attack.resetForArmsChange();
                this.armsDefine.inData("flyLaser",0,"arms");
                this.armsDefine.baseHurt = Game.gameData.getAllDps() * 0.06 / Game.gameData.getAllArmsAdd();
                this.mot.F_G = 0.5;
