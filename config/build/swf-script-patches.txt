@@ -147,3 +147,5 @@ body\hero\ArmsImage.as
 body\hero\HeroCarAAHD.as
 body\hero\HeroCarImage.as
 body\bullet\OneBulletBody.as
+body\bullet\BulletLink.as
+gameAll\data\weekExtra\WeekExtraData.as
