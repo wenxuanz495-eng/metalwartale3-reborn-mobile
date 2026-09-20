@@ -359,6 +359,22 @@ func (p *bgmPlayer) scanRecommendedCatalog() {
 				selected = candidate
 				break
 			}
+			// 工作区分类整理后，标记可能下移一级（如 相关素材\歌单\.playlist-root）。
+			if subEntries, subErr := os.ReadDir(candidate); subErr == nil {
+				for _, subEntry := range subEntries {
+					if !subEntry.IsDir() {
+						continue
+					}
+					subCandidate := filepath.Join(candidate, subEntry.Name())
+					if info, markerErr := os.Stat(filepath.Join(subCandidate, ".playlist-root")); markerErr == nil && !info.IsDir() {
+						selected = subCandidate
+						break
+					}
+				}
+			}
+			if selected != "" {
+				break
+			}
 		}
 	}
 	if selected == "" {
@@ -569,7 +585,17 @@ func (p *bgmPlayer) startPlaylist(context, mode string, ids []string, forceSwitc
 		}
 	}
 	if len(valid) == 0 {
-		return true, errors.New("playlist has no playable tracks")
+		if err := p.native.stop(0.1); err != nil {
+			return true, err
+		}
+		p.playlist = nil
+		p.playlistActive = false
+		p.playing = false
+		p.paused = false
+		p.label = ""
+		p.positionBase = 0
+		p.duration = 0
+		return true, nil
 	}
 	p.playlist = valid
 	p.playlistMode = mode
