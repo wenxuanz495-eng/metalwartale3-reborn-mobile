@@ -1469,7 +1469,7 @@ package UI.server
          this.notice_txt.wordWrap = true;
          this.notice_txt.selectable = false;
          this.notice_txt.defaultTextFormat = new TextFormat("_sans",13,65331,null,null,null,null,null,null,0,0,3,2);
-         this.notice_txt.text = "【超合金战记手游版 3.0.3 更新】\n手游版已同步端游 3.0 全部内容：老武器家族特效大复原 · 黄金系列新形态 · 星际雷神重做 · 雪花炮2026 · 火神炮实弹化 · 多项修复（详见公告页）。";
+         this.notice_txt.text = "【超合金战记手游版 3.0.4 更新】\n本次为 bug 修复版：关卡星级显示 · 帝皇战车兑换 · 金币空间结算与金币手动拾取 · VIP 折扣价格显示（详见公告页）。";
          box.addChild(this.notice_txt);
          return box;
       }
