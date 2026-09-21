@@ -4,13 +4,14 @@
     [ValidateSet('armv7','armv8','x86','x64')]
     [string]$Arch = 'armv7',
     [switch]$Release,
+    [switch]$Native,
     [string]$Theme = '',
     [string]$OutDir = ''
 )
 
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($AirSdk)) {
-    throw 'AIR_SDK is not set. Example: $env:AIR_SDK="D:\superalloy\工具\air-mobile-tools\airsdk-50.2.4.1"'
+    throw 'AIR_SDK is not set. Example: $env:AIR_SDK="D:\superalloy\air-mobile-tools\airsdk-50.2.4.1"'
 }
 $adt = Join-Path $AirSdk 'bin\adt.bat'
 if (!(Test-Path $adt)) { throw "adt not found: $adt" }
@@ -25,9 +26,18 @@ $deliverDir = Join-Path $workspaceRoot '临时封装目录\手游端\3.x.x'
 if (![string]::IsNullOrWhiteSpace($OutDir)) { $deliverDir = $OutDir }
 $cert = Join-Path $project 'test-release.p12'
 $extensions = Join-Path $project 'sasave-ane'
+# -Native: 原生链(2b) APK——AirLoader 先载 patch.swf(mxmlc 全量编译,CONFIG::MOBILE=true)
+# 再载基线 game.swf(资产壳)。前提: scripts\dev.ps1 native -Mobile 已产出 build 三件套。
+$appDescriptor = if ($Native) { Join-Path $project 'application-native.xml' } else { Join-Path $project 'application.xml' }
 New-Item -ItemType Directory -Force $stage,$out | Out-Null
 if (Test-Path $stage) { Get-ChildItem $stage -Force | Remove-Item -Recurse -Force }
-Copy-Item (Join-Path $RepoRoot 'build\game.swf') (Join-Path $stage 'game.swf')
+if ($Native) {
+    Copy-Item (Join-Path $RepoRoot 'build\game-baseline.swf') (Join-Path $stage 'game.swf')
+    Copy-Item (Join-Path $RepoRoot 'build\patch.swf') (Join-Path $stage 'patch.swf')
+    Copy-Item (Join-Path $RepoRoot 'build\air-loader.swf') (Join-Path $stage 'AirLoader.swf')
+} else {
+    Copy-Item (Join-Path $RepoRoot 'build\game.swf') (Join-Path $stage 'game.swf')
+}
 Copy-Item (Join-Path $RepoRoot 'build\swf') (Join-Path $stage 'swf') -Recurse
 Copy-Item (Join-Path $RepoRoot 'runtime\游戏更新公告.txt') (Join-Path $stage 'notice_update.txt')
 Copy-Item (Join-Path $RepoRoot 'runtime\感谢公告.txt') (Join-Path $stage 'notice_thanks.txt')
@@ -57,9 +67,12 @@ if (!(Test-Path $cert)) {
     if ($LASTEXITCODE -ne 0) { throw "adt certificate failed: $LASTEXITCODE" }
 }
 
-$target = Join-Path $out ("SuperAlloy-Mobile-Test-$Arch-" + $(if ($Release) { 'release.apk' } else { 'debug.apk' }))
+$target = Join-Path $out ("SuperAlloy-Mobile-Test-$Arch-" + $(if ($Native) { 'native-' }) + $(if ($Release) { 'release.apk' } else { 'debug.apk' }))
 if (Test-Path $target) { Remove-Item $target -Force }
-$args = @('-package', '-target', $(if ($Release) { 'apk' } else { 'apk-debug' }), '-arch', $Arch, '-storetype', 'pkcs12', '-keystore', $cert, '-storepass', 'superalloy-test', $target, (Join-Path $project 'application.xml'), '-extdir', $extensions, '-C', $stage, 'game.swf', '-C', $stage, 'swf', '-C', $stage, 'ui', '-C', $stage, 'notice_update.txt', '-C', $stage, 'notice_thanks.txt')
+$stageItems = @('game.swf', 'swf', 'ui', 'notice_update.txt', 'notice_thanks.txt')
+if ($Native) { $stageItems = @('patch.swf', 'AirLoader.swf') + $stageItems }
+$args = @('-package', '-target', $(if ($Release) { 'apk' } else { 'apk-debug' }), '-arch', $Arch, '-storetype', 'pkcs12', '-keystore', $cert, '-storepass', 'superalloy-test', $target, $appDescriptor, '-extdir', $extensions)
+foreach ($item in $stageItems) { $args += @('-C', $stage, $item) }
 & $adt @args
 if ($LASTEXITCODE -ne 0) { throw "adt package failed: $LASTEXITCODE" }
 

@@ -1,5 +1,8 @@
 package UI.gaming
 {
+   import flash.ui.Multitouch;
+   import flash.ui.MultitouchInputMode;
+   import flash.system.Capabilities;
    import UI.login.HeadBtn;
    import data.StringToDefine;
    import flash.display.MovieClip;
@@ -210,7 +213,7 @@ package UI.gaming
 
       private function initMobileControls() : void
       {
-         if(!flash.ui.Multitouch.supportsTouchEvents)
+         if(!Multitouch.supportsTouchEvents)
          {
             return;
          }
@@ -300,8 +303,8 @@ package UI.gaming
             return;
          }
          this.mobileBattleModeActive = true;
-         flash.ui.Multitouch.mapTouchToMouse = false;
-         flash.ui.Multitouch.inputMode = flash.ui.MultitouchInputMode.TOUCH_POINT;
+         Multitouch.mapTouchToMouse = false;
+         Multitouch.inputMode = MultitouchInputMode.TOUCH_POINT;
          this.mobileControls.visible = true;
          this.refreshMobileControlMode();
          stage.addEventListener(TouchEvent.TOUCH_BEGIN,this.mobileTouchBegin,true);
@@ -315,20 +318,20 @@ package UI.gaming
       {
          if(this.mobileControls == null)
          {
-            flash.ui.Multitouch.inputMode = flash.ui.MultitouchInputMode.NONE;
-            flash.ui.Multitouch.mapTouchToMouse = true;
+            Multitouch.inputMode = MultitouchInputMode.NONE;
+            Multitouch.mapTouchToMouse = true;
             return;
          }
          if(!this.mobileBattleModeActive)
          {
-            flash.ui.Multitouch.inputMode = flash.ui.MultitouchInputMode.NONE;
-            flash.ui.Multitouch.mapTouchToMouse = true;
+            Multitouch.inputMode = MultitouchInputMode.NONE;
+            Multitouch.mapTouchToMouse = true;
             return;
          }
          this.mobileBattleModeActive = false;
          this.mobileControls.visible = false;
-         flash.ui.Multitouch.inputMode = flash.ui.MultitouchInputMode.NONE;
-         flash.ui.Multitouch.mapTouchToMouse = true;
+         Multitouch.inputMode = MultitouchInputMode.NONE;
+         Multitouch.mapTouchToMouse = true;
          if(stage != null)
          {
             try
@@ -497,7 +500,7 @@ package UI.gaming
                {
                   break;
                }
-               if(parent0.visible && parent0.mouseEnabled && parent0.hasEventListener(MouseEvent.CLICK) && parent0 != this && parent0 != Game.gameSprite.topUIL && parent0 != Game.gameSprite.gamingUIL)
+               if(parent0.visible && parent0["mouseEnabled"] && parent0.hasEventListener(MouseEvent.CLICK) && parent0 != this && parent0 != Game.gameSprite.topUIL && parent0 != Game.gameSprite.gamingUIL)
                {
                   return parent0;
                }

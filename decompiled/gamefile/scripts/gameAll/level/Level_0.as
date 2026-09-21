@@ -1,5 +1,8 @@
 package gameAll.level
 {
+   import flash.ui.Multitouch;
+   import flash.ui.MultitouchInputMode;
+   import flash.system.Capabilities;
    import UI.gaming.GamingUI;
    import body.lieutenant.LieutenantBody;
    import enemy.charger.ChargerBody;
@@ -75,7 +78,7 @@ package gameAll.level
          {
             try{ Game.reportClientError("mobile-prologue","fleshNew: " + error4,"","Level_0"); }catch(log4:*){}
          }
-         if(flash.system.Capabilities.playerType != "Desktop")
+         if(Capabilities.playerType != "Desktop")
          {
             Game.payController2.payCtrl("getTotalRecharged",true);
          }

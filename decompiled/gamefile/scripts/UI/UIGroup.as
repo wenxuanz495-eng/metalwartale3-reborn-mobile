@@ -1,5 +1,8 @@
 package UI
 {
+   import flash.ui.Multitouch;
+   import flash.ui.MultitouchInputMode;
+   import flash.system.Capabilities;
    import UI._new.change.CtrlListCtrl;
    import UI._new.change._ChangeUI;
    import UI._new.icon.ChangeIconBox;
@@ -76,8 +79,8 @@ package UI
    import flash.text.TextField;
    import flash.text.TextFieldAutoSize;
    import flash.text.TextFormat;
-   import flash.ui.Multitouch;
-   import flash.ui.MultitouchInputMode;
+   import Multitouch;
+   import MultitouchInputMode;
    import flash.utils.Timer;
    import flash.utils.getTimer;
    import gameAll.data.ArmsItemsData;
@@ -1128,7 +1131,7 @@ package UI
             {
                continue;
             }
-            if(child0.name == "return_btn" && child0.mouseEnabled && child0.hasEventListener(MouseEvent.CLICK))
+            if(child0.name == "return_btn" && child0["mouseEnabled"] && child0.hasEventListener(MouseEvent.CLICK))
             {
                return child0;
             }
@@ -1205,7 +1208,7 @@ package UI
 
       public function requestSaveBackup(callback:Function = null) : *
       {
-         if(flash.system.Capabilities.playerType == "Desktop")
+         if(Capabilities.playerType == "Desktop")
          {
             Game.save_api.localSave.CreateBackup(callback);
             return;
