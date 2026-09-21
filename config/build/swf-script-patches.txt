@@ -149,3 +149,5 @@ body\hero\HeroCarImage.as
 body\bullet\OneBulletBody.as
 body\bullet\BulletLink.as
 gameAll\data\weekExtra\WeekExtraData.as
+gameAll\level\extra\SpecialExtraLevel_6.as
+items\ItemsBody.as
