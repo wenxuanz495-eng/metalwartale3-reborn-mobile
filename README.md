@@ -64,7 +64,7 @@ metalwartale3-reborn-mobile\
 2. [移植台账.md](移植台账.md) — 端游→手游移植唯一进度账本（L1/L2/L3/F 系列 + 对齐 3.0.3 批 1~6 全部关闭）
 3. [移植README.md](移植README.md) — 移植作业规范（基线留底 / 三方对照 / 触屏 17 类红线）
 4. [docs\README.md](docs/README.md) 与 [docs\BAT_RUNTIME.md](docs/BAT_RUNTIME.md) — 工程文档索引与运行自检
-5. [更新总结\README.md](更新总结/README.md) — bug 维护与专项归档索引
+5. [更新总结\README.md](更新总结/README.md) — bug 维护与专项归档索引；[更新总结\版本标签\README.md](更新总结/版本标签/README.md) — **版本 ↔ tag / 提交 / 封装包 / 总结 对照（含 tag 缺口与补挂建议）**
 6. [docs\【重要必读】修改UI后卡在旧加载界面.md](docs/【重要必读】修改UI后卡在旧加载界面.md) — UI 改动 boot-fail 快速排查卡
 
 ## 六、维护约定（摘要）
