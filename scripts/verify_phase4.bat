@@ -18,7 +18,8 @@ call "%~dp0launch_modifier.bat" --check
 if errorlevel 1 exit /b 22
 
 echo ==== Uncached save regression ====
-set "GOPATH=D:\superalloy\.gopath"
+rem Go 缓存目录跟随工作区布局（仓库上一级的 .gopath），不写死盘符
+for %%I in ("%~dp0..\..") do set "GOPATH=%%~fI\.gopath"
 set "GOMODCACHE=%GOPATH%\pkg\mod"
 set "GOCACHE=%GOPATH%\cache"
 pushd server

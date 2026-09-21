@@ -1,8 +1,0 @@
-mobile/air-android/stage/
-mobile/air-android/dist/
-mobile/air-android/test-release.p12
-*.log
-
-# 构建产物目录（对齐端游仓规则）
-/build/
-/logs/
