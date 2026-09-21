@@ -81,6 +81,8 @@ Move-Item $target $finalPath -Force
 $hash = (Get-FileHash -Algorithm SHA256 $finalPath).Hash
 [IO.File]::WriteAllText($finalPath + '.sha256.txt', $hash + '  ' + (Split-Path $finalPath -Leaf), [Text.UTF8Encoding]::new($false))
 # 归集目录只保留最新一个安装包（用户裁定）：删除本次交付以外的 apk 与其 sha256 文件
-Get-ChildItem -Path $deliverDir -File | Where-Object { $_.FullName -ne $finalPath -and ($_.Extension -eq '.apk' -or $_.Name -like '*.apk.sha256.txt') } | Remove-Item -Force
+# 注意：必须同时排除本次的 .sha256.txt，否则会把刚生成的校验件一并删掉（其 Name 也匹配 '*.apk.sha256.txt'）
+$finalSha = $finalPath + '.sha256.txt'
+Get-ChildItem -Path $deliverDir -File | Where-Object { $_.FullName -ne $finalPath -and $_.FullName -ne $finalSha -and ($_.Extension -eq '.apk' -or $_.Name -like '*.apk.sha256.txt') } | Remove-Item -Force
 Get-Item $finalPath | Select-Object FullName,Length,LastWriteTime
 Write-Host ("SHA256: " + $hash)
