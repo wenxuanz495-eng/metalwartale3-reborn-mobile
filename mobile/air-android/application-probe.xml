@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<application xmlns="http://ns.adobe.com/air/application/50.2">
+    <id>com.superalloy.metalwartale3.mobiletest</id>
+    <versionNumber>3.0.4</versionNumber>
+    <filename>超合金战记3.0.4</filename>
+    <name>超合金战记3.0.4</name>
+    <description>Android AIR test package for the current game build.</description>
+    <initialWindow>
+        <content>AirLoaderProbe.swf</content>
+        <systemChrome>standard</systemChrome>
+        <transparent>false</transparent>
+        <visible>true</visible>
+        <fullScreen>true</fullScreen>
+        <aspectRatio>landscape</aspectRatio>
+        <autoOrients>false</autoOrients>
+        <renderMode>gpu</renderMode>
+        <requestedDisplayResolution>standard</requestedDisplayResolution>
+    </initialWindow>
+    <android>
+        <manifestAdditions><![CDATA[
+            <manifest android:installLocation="auto">
+                <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="35" />
+                <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
+                <uses-permission android:name="android.permission.INTERNET" />
+                <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+                <application>
+                    <provider
+                        android:name="com.superalloy.sasave.SasaveProvider"
+                        android:authorities="air.com.superalloy.metalwartale3.mobiletest.sasave"
+                        android:exported="false"
+                        android:grantUriPermissions="true" />
+                    <activity android:name="com.superalloy.sasave.SasaveBridgeActivity" android:exported="true">
+                        <intent-filter>
+                            <action android:name="android.intent.action.VIEW" />
+                            <category android:name="android.intent.category.DEFAULT" />
+                            <category android:name="android.intent.category.BROWSABLE" />
+                            <data android:scheme="sasavebridge" />
+                        </intent-filter>
+                        <intent-filter>
+                            <action android:name="android.intent.action.SEND" />
+                            <category android:name="android.intent.category.DEFAULT" />
+                            <data android:mimeType="application/x-sasave" />
+                            <data android:mimeType="application/zip" />
+                            <data android:mimeType="application/octet-stream" />
+                        </intent-filter>
+                        <intent-filter>
+                            <action android:name="android.intent.action.SEND" />
+                            <category android:name="android.intent.category.DEFAULT" />
+                            <data android:mimeType="*/*" />
+                        </intent-filter>
+                        <intent-filter>
+                            <action android:name="android.intent.action.VIEW" />
+                            <category android:name="android.intent.category.DEFAULT" />
+                            <category android:name="android.intent.category.BROWSABLE" />
+                            <data android:scheme="content" />
+                            <data android:scheme="file" />
+                            <data android:mimeType="application/x-sasave" />
+                            <data android:mimeType="application/zip" />
+                            <data android:mimeType="application/octet-stream" />
+                        </intent-filter>
+                        <intent-filter>
+                            <action android:name="android.intent.action.VIEW" />
+                            <category android:name="android.intent.category.DEFAULT" />
+                            <category android:name="android.intent.category.BROWSABLE" />
+                            <data android:scheme="content" />
+                            <data android:scheme="file" />
+                            <data android:mimeType="*/*" />
+                            <data android:pathPattern=".*\\.sasave" />
+                        </intent-filter>
+                    </activity>
+                </application>
+            </manifest>
+        ]]></manifestAdditions>
+    </android>
+    <extensions>
+        <extensionID>com.superalloy.sasave</extensionID>
+    </extensions>
+    <supportedProfiles>mobileDevice</supportedProfiles>
+</application>
