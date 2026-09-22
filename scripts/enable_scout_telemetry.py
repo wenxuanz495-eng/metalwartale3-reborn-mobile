@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # enable_scout_telemetry.py — 给 SWF 注入 EnableTelemetry(tag 93) 标记，供 Adobe Scout 采样
-# 算法与 Adobe telemetry-tools add-opt-in.py(BSD) 等价：tag 93 插在 FileAttributes(69) 之后(跳过紧随的 Metadata 77)，
+# 算法与 Adobe telemetry-tools add-opt-in.py(BSD) 等价但插入位置不同：tag 93 插在标签流末尾(End tag 0 之前)——20260922 真机实测：头部放置(vivo V2452A/Android16)引发原生启动崩溃，末尾放置正常，
 # payload = 2 字节保留字段；CWS 解压→插→zlib 重压→回写 FileLength；已有 tag 93 或签名 SWF(92) 则拒绝。
 # 用法: python enable_scout_telemetry.py <swf路径>   （原地修改，自动留 .bak 备份）
 import struct, sys, zlib, shutil, hashlib, os
