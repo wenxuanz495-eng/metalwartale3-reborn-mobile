@@ -98,8 +98,6 @@ package UI
    public class UIGroup
    {
       private var mobileCloseProxy:Sprite;
-      private var mobileCloseTargetCache:DisplayObject = null;
-      private var mobileCloseScanFrame:int = 0;
 
       private var mobileCloseTarget:DisplayObject;
 
@@ -1094,17 +1092,7 @@ package UI
 
       private function updateMobileCloseProxy(event:Event) : void
       {
-         // 性能修复(20260922): 全树扫描从每帧降为每15帧,帧间走缓存+父链廉价校验
-         if(this.mobileCloseScanFrame <= 0 || !this.isStillValidReturnButton(this.mobileCloseTargetCache))
-         {
-            this.mobileCloseTargetCache = this.findTopVisibleReturnButton(this.gameSprite);
-            this.mobileCloseScanFrame = 15;
-         }
-         else
-         {
-            this.mobileCloseScanFrame = this.mobileCloseScanFrame - 1;
-         }
-         var target0:DisplayObject = this.mobileCloseTargetCache;
+         var target0:DisplayObject = this.findTopVisibleReturnButton(this.gameSprite);
          this.mobileCloseTarget = target0;
          if(target0 == null || target0.stage == null)
          {
@@ -1122,24 +1110,6 @@ package UI
          this.mobileCloseProxy.y = point0.y;
          this.mobileCloseProxy.visible = true;
          this.gameSprite.goHomeL.setChildIndex(this.mobileCloseProxy,this.gameSprite.goHomeL.numChildren - 1);
-      }
-
-      private function isStillValidReturnButton(target0:DisplayObject) : Boolean
-      {
-         if(target0 == null || target0.stage == null || !target0.visible || target0.alpha <= 0)
-         {
-            return false;
-         }
-         var parent0:DisplayObjectContainer = target0.parent;
-         while(parent0 != null)
-         {
-            if(!parent0.visible || parent0.alpha <= 0)
-            {
-               return false;
-            }
-            parent0 = parent0.parent;
-         }
-         return true;
       }
 
       private function findTopVisibleReturnButton(container0:DisplayObjectContainer) : DisplayObject
