@@ -1469,7 +1469,7 @@ package UI.server
          this.notice_txt.wordWrap = true;
          this.notice_txt.selectable = false;
          this.notice_txt.defaultTextFormat = new TextFormat("_sans",13,65331,null,null,null,null,null,null,0,0,3,2);
-         this.notice_txt.text = "【超合金战记手游版 3.0.4 更新】\n本次为 bug 修复版：关卡星级显示 · 帝皇战车兑换 · 金币空间结算与金币手动拾取 · VIP 折扣价格显示（详见公告页）。";
+         this.notice_txt.text = "【超合金战记手游版 3.0.5 更新】\n本次为内容更新版：高能粒子炮（星爆家族）特效补完复原 · 龙之怒开火整枪发光复原 · 核爆轰击炮拖尾烟雾复原 · 定制武器/战车介绍去署名（详见公告页）。";
          box.addChild(this.notice_txt);
          return box;
       }

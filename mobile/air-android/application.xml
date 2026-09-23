@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <application xmlns="http://ns.adobe.com/air/application/50.2">
     <id>com.superalloy.metalwartale3.mobiletest</id>
-    <versionNumber>3.0.4</versionNumber>
-    <filename>超合金战记3.0.4</filename>
-    <name>超合金战记3.0.4</name>
+    <versionNumber>3.0.5</versionNumber>
+    <filename>超合金战记3.0.5</filename>
+    <name>超合金战记3.0.5</name>
     <description>Android AIR test package for the current game build.</description>
     <initialWindow>
         <content>game.swf</content>
