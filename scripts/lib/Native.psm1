@@ -152,12 +152,14 @@ function Build-NativeLoader {
   }
   $output = Join-Path $nativeDir $artifact
   $define = Get-NativeDefineValue -Mobile:$Mobile
-  $cacheVersion = "native-loader-v2"
+  # Scout 高级遥测: 根 SWF 内嵌 EnableTelemetry 标记(debug 包运行时侧 sampler 常开)
+  $cacheVersion = "native-loader-v3-scout"
 
   New-Item -ItemType Directory -Force -Path $nativeDir | Out-Null
   $key = Get-SwfCacheKey @(
     $cacheVersion
     "define|CONFIG::MOBILE=$define"
+    "advanced-telemetry|true"
     "source|$(Get-Sha256 $loaderSource)"
     "compiler|$(Get-Sha256 $compiler)"
   )
@@ -181,6 +183,7 @@ function Build-NativeLoader {
     try {
       & $compiler `
         -debug=true `
+        "-advanced-telemetry=true" `
         -actionscript-file-encoding=UTF-8 `
         "-define+=CONFIG::MOBILE,$define" `
         "-source-path=$(Split-Path $loaderSource)" `
