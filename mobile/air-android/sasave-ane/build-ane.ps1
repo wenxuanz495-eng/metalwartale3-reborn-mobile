@@ -1,4 +1,4 @@
-param([string]$AirSdk = $env:AIR_SDK)
+﻿param([string]$AirSdk = $env:AIR_SDK)
 
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($AirSdk)) { throw 'AIR_SDK is not set.' }

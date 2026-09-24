@@ -81,6 +81,9 @@ $appXml = Join-Path $project 'application.xml'
 if (Test-Path $appXml) {
     $m = Select-String -Path $appXml -Pattern '<versionNumber>([0-9.]+)</versionNumber>' | Select-Object -First 1
     if ($m) { $version = $m.Matches[0].Groups[1].Value }
+    # versionLabel（自由文本，如 3.0.5.1 测试版）优先用于出包文件名；versionNumber 受 XSD 限三段
+    $l = Select-String -Path $appXml -Pattern '<versionLabel>([^<]+)</versionLabel>' | Select-Object -First 1
+    if ($l) { $version = $l.Matches[0].Groups[1].Value.Trim() }
 }
 $date0 = Get-Date -Format 'yyyyMMdd'
 $nameParts = @('SuperAlloy-Mobile', $version)

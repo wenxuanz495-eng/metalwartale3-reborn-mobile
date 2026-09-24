@@ -192,6 +192,12 @@ package UI.server
 
       private var sasaveExportName:String = "";
 
+      private var sasaveDesktopSlots:Array = null;
+
+      private var sasaveExportRaw:Boolean = false;
+
+      private var sasaveDesktopExportButton:Sprite = null;
+
       private var sasaveImportFileButton:Sprite;
 
       private var sasaveImportReceiveButton:Sprite;
@@ -952,6 +958,9 @@ package UI.server
          this.sasaveExportShareButton.visible = false;
          this.sasavePanel.addChild(this.sasaveExportFileButton);
          this.sasavePanel.addChild(this.sasaveExportShareButton);
+         this.sasaveDesktopExportButton = this.createSasaveCommand("导出端游档","sasaveExportDesktop",135,420,185,38);
+         this.sasaveDesktopExportButton.visible = false;
+         this.sasavePanel.addChild(this.sasaveDesktopExportButton);
          this.sasavePanel.visible = false;
          addChild(this.sasavePanel);
       }
@@ -976,6 +985,27 @@ package UI.server
          var slot0:Object = null;
          var button0:Sprite = null;
          var i0:int = 0;
+         if(this.sasaveMode == "desktopPick")
+         {
+            while(this.sasaveSlotButtons.length > 0)
+            {
+               old0 = this.sasaveSlotButtons.pop() as Sprite;
+               if(old0 != null && old0.parent == this.sasavePanel) this.sasavePanel.removeChild(old0);
+            }
+            var desktop0:Array = this.sasaveDesktopSlots != null ? this.sasaveDesktopSlots : [];
+            i0 = 0;
+            while(i0 < desktop0.length)
+            {
+               slot0 = desktop0[i0];
+               var dlabel0:String = "端游" + String(int(slot0.index) + 1) + "号 " + String(slot0.data.playerName || "未知角色") + " Lv." + String(int(slot0.data.level || 0) + 1);
+               button0 = this.createSasaveCommand(dlabel0,"sasaveDesktopSlot_" + String(i0),135 + i0 % 2 * 350,205 + int(i0 / 2) * 55,330,42);
+               this.sasaveSlotButtons.push(button0);
+               this.sasavePanel.addChild(button0);
+               i0++;
+            }
+            this.sasaveTargetIndex = -1;
+            return;
+         }
          while(this.sasaveSlotButtons.length > 0)
          {
             old0 = this.sasaveSlotButtons.pop() as Sprite;
@@ -1052,6 +1082,11 @@ package UI.server
             }
             if(response0.status != "ok") throw new Error(String(response0.message));
             this.sasaveManifest = response0.manifest;
+            if(String(this.sasaveManifest.format) == "superalloy-desktop-save")
+            {
+               this.consumeDesktopContainer(String(response0.cachePath));
+               return;
+            }
             this.sasaveRisk = this.getSasaveVersionRisk(String(this.sasaveManifest.gameVersion));
             if(this.sasaveRisk < 0) throw new Error("该存档来自更高版本 " + String(this.sasaveManifest.gameVersion) + "，当前1.2版本禁止导入。请升级游戏。");
             slot0 = this.readSasaveSlot(String(response0.cachePath));
@@ -1060,6 +1095,7 @@ package UI.server
             this.sasaveMode = "import";
             this.sasaveImportFileButton.visible = false;
             this.sasaveImportReceiveButton.visible = false;
+            this.sasaveDesktopExportButton.visible = false;
             this.sasaveConfirmButton.visible = true;
             this.refreshSasaveSlots();
             this.sasaveStatus.text = this.sasavePreviewText();
@@ -1077,11 +1113,13 @@ package UI.server
          this.sasaveMode = "export";
          this.sasaveImportFileButton.visible = false;
          this.sasaveImportReceiveButton.visible = false;
+         this.sasaveDesktopExportButton.visible = true;
          this.sasaveConfirmButton.visible = true;
          this.sasaveExportFileButton.visible = false;
          this.sasaveExportShareButton.visible = false;
          this.sasavePendingSlot = null;
          this.sasaveManifest = null;
+         this.sasaveExportRaw = false;
          this.refreshSasaveSlots();
          if(this.sasaveSlotButtons.length == 0)
          {
@@ -1104,6 +1142,16 @@ package UI.server
          if(role0.indexOf("sasaveSlot_") == 0)
          {
             this.selectSasaveSlot(int(role0.split("_")[1]));
+            return;
+         }
+         if(role0.indexOf("sasaveDesktopSlot_") == 0)
+         {
+            this.pickDesktopSlot(int(role0.split("_")[1]));
+            return;
+         }
+         if(role0 == "sasaveExportDesktop")
+         {
+            this.exportDesktopContainer();
             return;
          }
          if(role0 == "sasaveExportFile" || role0 == "sasaveExportShare")
@@ -1139,6 +1187,7 @@ package UI.server
          }
          this.sasaveExportFileButton.visible = false;
          this.sasaveExportShareButton.visible = false;
+         this.sasaveDesktopExportButton.visible = false;
          this.sasaveConfirmButton.visible = false;
          this.sasaveImportFileButton.visible = true;
          this.sasaveImportReceiveButton.visible = true;
@@ -1201,6 +1250,7 @@ package UI.server
             this.sasaveExportFilePath = this.writeSasaveBridgeFile(bytes0);
             this.sasaveExportManifestPath = this.writeSasaveManifestFile(JSON2.encode(manifest0));
             this.sasaveExportName = String(slot0.data.playerName) + "-Lv" + String(int(slot0.data.level || 0) + 1) + ".sasave";
+            this.sasaveExportRaw = false;
             this.sasaveExportFileButton.visible = true;
             this.sasaveExportShareButton.visible = true;
             this.sasaveStatus.text = "存档已准备完成，请选择导出到文件，或分享到其他软件。";
@@ -1240,7 +1290,7 @@ package UI.server
 
       private function launchNativeSasaveExport(mode0:String) : void
       {
-         var url0:String = "sasavebridge://" + mode0 + "?name=" + encodeURIComponent(this.sasaveExportName) + "&save=" + encodeURIComponent(this.sasaveExportFilePath) + "&manifest=" + encodeURIComponent(this.sasaveExportManifestPath);
+         var url0:String = "sasavebridge://" + mode0 + "?name=" + encodeURIComponent(this.sasaveExportName) + "&save=" + encodeURIComponent(this.sasaveExportFilePath) + (this.sasaveExportRaw ? "&raw=1" : "&manifest=" + encodeURIComponent(this.sasaveExportManifestPath));
          navigateToURL(new URLRequest(url0),"_self");
          this.sasaveStatus.text = mode0 == "share" ? "正在打开系统分享菜单。" : "正在打开系统文件保存界面。";
       }
@@ -1273,6 +1323,136 @@ package UI.server
          stream0.close();
          bytes0.position = 0;
          return bytes0.readObject();
+      }
+
+      private function readSasaveBytes(path0:String) : ByteArray
+      {
+         var fileClass0:Class = getDefinitionByName("flash.filesystem::File") as Class;
+         var streamClass0:Class = getDefinitionByName("flash.filesystem::FileStream") as Class;
+         var modeClass0:Class = getDefinitionByName("flash.filesystem::FileMode") as Class;
+         var file0:* = new fileClass0(path0);
+         var stream0:* = new streamClass0();
+         var bytes0:ByteArray = new ByteArray();
+         stream0.open(file0,modeClass0["READ"]);
+         stream0.readBytes(bytes0);
+         stream0.close();
+         return bytes0;
+      }
+
+      private function consumeDesktopContainer(path0:String) : void
+      {
+         var bytes0:ByteArray = null;
+         var container0:Object = null;
+         var slots0:Array = null;
+         var slot0:Object = null;
+         var i0:int = 0;
+         var valid0:Array = [];
+         try
+         {
+            bytes0 = this.readSasaveBytes(path0);
+            bytes0.position = 0;
+            bytes0.inflate();
+            bytes0.position = 0;
+            container0 = bytes0.readObject();
+            slots0 = container0 != null && container0.localSlots is Array ? container0.localSlots as Array : null;
+            if(slots0 == null) throw new Error("端游存档不含 localSlots，格式可能不正确");
+            i0 = 0;
+            while(i0 < slots0.length && i0 < 8)
+            {
+               slot0 = slots0[i0];
+               if(slot0 != null && slot0.data != null)
+               {
+                  this.validateSasaveSlot(slot0);
+                  valid0.push(slot0);
+               }
+               i0++;
+            }
+            if(valid0.length == 0) throw new Error("端游存档没有可导入的存档槽位");
+            this.sasaveDesktopSlots = valid0;
+            this.sasaveMode = "desktopPick";
+            this.sasavePendingSlot = null;
+            this.sasaveImportFileButton.visible = false;
+            this.sasaveImportReceiveButton.visible = false;
+            this.sasaveDesktopExportButton.visible = false;
+            this.sasaveConfirmButton.visible = false;
+            this.sasaveExportFileButton.visible = false;
+            this.sasaveExportShareButton.visible = false;
+            this.refreshSasaveSlots();
+            this.sasaveStatus.text = "已读取端游存档，共 " + valid0.length + " 个角色。请选择要导入的角色。";
+            this.sasavePanel.visible = true;
+            setChildIndex(this.sasavePanel,numChildren - 1);
+         }
+         catch(error:Error)
+         {
+            this.saveDataStatus.text = "禁止导入：" + error.message;
+         }
+      }
+
+      private function pickDesktopSlot(index0:int) : void
+      {
+         var slot0:Object = this.sasaveDesktopSlots != null && index0 >= 0 && index0 < this.sasaveDesktopSlots.length ? this.sasaveDesktopSlots[index0] : null;
+         if(slot0 == null) return;
+         try
+         {
+            this.validateSasaveSlot(slot0);
+         }
+         catch(error:Error)
+         {
+            this.sasaveStatus.text = "该端游槽位数据不完整：" + error.message;
+            return;
+         }
+         this.sasavePendingSlot = this.cloneSaveObject(slot0);
+         this.sasaveMode = "import";
+         this.sasaveImportFileButton.visible = false;
+         this.sasaveImportReceiveButton.visible = false;
+         this.sasaveDesktopExportButton.visible = false;
+         this.sasaveConfirmButton.visible = true;
+         this.refreshSasaveSlots();
+         this.sasaveStatus.text = "来源角色：" + String(this.sasavePendingSlot.data.playerName) + "　等级：" + String(int(this.sasavePendingSlot.data.level) + 1) + "（来自端游存档，无版本信息）\n请选择覆盖槽位并点击确认。";
+         this.sasavePanel.visible = true;
+         setChildIndex(this.sasavePanel,numChildren - 1);
+      }
+
+      private function exportDesktopContainer() : void
+      {
+         var so0:SharedObject = null;
+         var root0:Object = null;
+         var source0:Array = null;
+         var slots0:Array = null;
+         var bytes0:ByteArray = null;
+         var i0:int = 0;
+         var hasAny0:Boolean = false;
+         try
+         {
+            so0 = SharedObject.getLocal("superalloy_mobile_save","/");
+            root0 = so0.data.saveContainer;
+            source0 = root0 != null && root0.localSlots is Array ? root0.localSlots as Array : [];
+            slots0 = [];
+            i0 = 0;
+            while(i0 < 8)
+            {
+               slots0[i0] = i0 < source0.length ? source0[i0] : null;
+               if(slots0[i0] != null && slots0[i0].data != null) hasAny0 = true;
+               i0++;
+            }
+            if(!hasAny0) throw new Error("没有可导出的存档。");
+            bytes0 = new ByteArray();
+            bytes0.writeObject({"localSaveVersion":2,"localSlots":slots0});
+            bytes0.position = 0;
+            bytes0.deflate();
+            bytes0.position = 0;
+            this.sasaveExportFilePath = this.writeSasaveBridgeFile(bytes0);
+            this.sasaveExportManifestPath = "";
+            this.sasaveExportName = "game_save.bin";
+            this.sasaveExportRaw = true;
+            this.sasaveExportFileButton.visible = true;
+            this.sasaveExportShareButton.visible = true;
+            this.sasaveStatus.text = "端游存档已生成（game_save.bin，含全部槽位）。请选择导出到文件，或分享到其他软件。";
+         }
+         catch(error:Error)
+         {
+            this.sasaveStatus.text = "导出失败：" + error.message;
+         }
       }
 
       private function validateSasaveSlot(slot0:Object) : void
@@ -1469,7 +1649,7 @@ package UI.server
          this.notice_txt.wordWrap = true;
          this.notice_txt.selectable = false;
          this.notice_txt.defaultTextFormat = new TextFormat("_sans",13,65331,null,null,null,null,null,null,0,0,3,2);
-         this.notice_txt.text = "【超合金战记手游版 3.0.5 更新】\n本次为内容更新版：高能粒子炮（星爆家族）特效补完复原 · 龙之怒开火整枪发光复原 · 核爆轰击炮拖尾烟雾复原 · 定制武器/战车介绍去署名（详见公告页）。";
+         this.notice_txt.text = "【超合金战记手游版 3.0.5.1 测试版】\n测试内容：存档交换新增端游存档转换——可将端游 game_save.bin 中的角色导入本机，也可将本机全部存档导出为端游 game_save.bin（存档数据 → 导入/导出存档）。";
          box.addChild(this.notice_txt);
          return box;
       }

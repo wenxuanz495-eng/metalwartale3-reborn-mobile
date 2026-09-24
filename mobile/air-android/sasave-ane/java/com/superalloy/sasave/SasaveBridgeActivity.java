@@ -24,6 +24,7 @@ public final class SasaveBridgeActivity extends Activity {
     private static final int OPEN_DOCUMENT = 4102;
     private static final int MAX_ARCHIVE_BYTES = 8 * 1024 * 1024;
     private static final int MAX_ENTRY_BYTES = 4 * 1024 * 1024;
+    private static final int MAX_SAVE_BYTES = 32 * 1024 * 1024;
     private File pendingArchive;
 
     protected void onCreate(Bundle state) {
@@ -54,19 +55,29 @@ public final class SasaveBridgeActivity extends Activity {
     }
 
     private void exportSave(Uri command) throws Exception {
-        byte[] saveBytes = readFile(new File(command.getQueryParameter("save")), MAX_ENTRY_BYTES);
-        byte[] manifestBytes = readFile(new File(command.getQueryParameter("manifest")), MAX_ENTRY_BYTES);
-        JSONObject manifest = new JSONObject(new String(manifestBytes, "UTF-8"));
-        manifest.put("payloadSha256", sha256(saveBytes));
+        byte[] saveBytes = readFile(new File(command.getQueryParameter("save")), MAX_SAVE_BYTES);
         String fileName = cleanFileName(command.getQueryParameter("name"));
         File directory = new File(getCacheDir(), "sasave_exports");
         if (!directory.exists() && !directory.mkdirs()) throw new Exception("无法建立导出缓存目录");
         pendingArchive = new File(directory, fileName);
-        writeArchive(pendingArchive, manifest.toString().getBytes("UTF-8"), saveBytes);
+        boolean raw = "1".equals(command.getQueryParameter("raw"));
+        String mime;
+        if (raw) {
+            FileOutputStream rawOutput = new FileOutputStream(pendingArchive);
+            rawOutput.write(saveBytes);
+            rawOutput.close();
+            mime = "application/octet-stream";
+        } else {
+            byte[] manifestBytes = readFile(new File(command.getQueryParameter("manifest")), MAX_ENTRY_BYTES);
+            JSONObject manifest = new JSONObject(new String(manifestBytes, "UTF-8"));
+            manifest.put("payloadSha256", sha256(saveBytes));
+            writeArchive(pendingArchive, manifest.toString().getBytes("UTF-8"), saveBytes);
+            mime = "application/x-sasave";
+        }
         if ("share".equals(command.getHost())) {
             Uri shareUri = Uri.parse("content://" + getPackageName() + ".sasave/" + Uri.encode(fileName));
             Intent send = new Intent(Intent.ACTION_SEND);
-            send.setType("application/x-sasave");
+            send.setType(mime);
             send.putExtra(Intent.EXTRA_STREAM, shareUri);
             send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(send, "分享超合金战记存档"));
@@ -75,7 +86,7 @@ public final class SasaveBridgeActivity extends Activity {
         }
         Intent create = new Intent("android.intent.action.CREATE_DOCUMENT");
         create.addCategory(Intent.CATEGORY_OPENABLE);
-        create.setType("application/x-sasave");
+        create.setType(mime);
         create.putExtra(Intent.EXTRA_TITLE, fileName);
         startActivityForResult(create, CREATE_DOCUMENT);
     }
@@ -116,8 +127,10 @@ public final class SasaveBridgeActivity extends Activity {
         Uri uri = incomingUri(intent);
         if (uri == null) throw new Exception("没有收到可导入的存档文件");
         InputStream incoming = getContentResolver().openInputStream(uri);
-        JSONObject parsed = parseArchive(readAll(incoming, MAX_ARCHIVE_BYTES));
+        byte[] archive = readAll(incoming, MAX_SAVE_BYTES);
         incoming.close();
+        boolean zip = archive.length >= 2 && archive[0] == 80 && archive[1] == 75;
+        JSONObject parsed = zip ? parseArchive(archive) : parseRawSave(archive);
         File saveFile = new File(getFilesDir(), "incoming-superalloy-save.bin");
         FileOutputStream saveOutput = new FileOutputStream(saveFile);
         saveOutput.write(Base64.decode(parsed.remove("saveBase64").toString(), Base64.DEFAULT));
@@ -171,6 +184,20 @@ public final class SasaveBridgeActivity extends Activity {
         return result;
     }
 
+    private static JSONObject parseRawSave(byte[] raw) throws Exception {
+        if (raw.length < 8) throw new Exception("文件太小，不是端游存档");
+        JSONObject manifest = new JSONObject();
+        manifest.put("format", "superalloy-desktop-save");
+        manifest.put("formatVersion", 1);
+        manifest.put("gameVersion", "");
+        manifest.put("playerName", "");
+        manifest.put("displayLevel", 0);
+        JSONObject result = new JSONObject();
+        result.put("manifest", manifest);
+        result.put("saveBase64", Base64.encodeToString(raw, Base64.NO_WRAP));
+        return result;
+    }
+
     private static void writeArchive(File target, byte[] manifest, byte[] save) throws Exception {
         ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(target));
         zip.putNextEntry(new ZipEntry("manifest.json"));
@@ -216,7 +243,7 @@ public final class SasaveBridgeActivity extends Activity {
     private static String cleanFileName(String value) {
         String name = value == null ? "superalloy-save.sasave" : value.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").trim();
         if (name.length() == 0) name = "superalloy-save.sasave";
-        if (!name.endsWith(".sasave")) name += ".sasave";
+        if (!name.endsWith(".sasave") && !name.endsWith(".bin")) name += ".sasave";
         return name;
     }
 
